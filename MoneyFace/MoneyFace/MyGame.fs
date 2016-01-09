@@ -3,37 +3,38 @@
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Content
+open Microsoft.Xna.Framework.Input
+open BoardState
 
 type TextureId = 
     | Avatar
     | Dollar
+    | Playfield
 
 let loadTextures (contentManager:ContentManager) =
-    [(Avatar,"avatar"); (Dollar, "dollar")]
+    [(Avatar   , "avatar"   ); 
+     (Dollar   , "dollar"   );
+     (Playfield, "playfield")]
     |> Seq.map(fun (id, filename) -> (id, contentManager.Load<Texture2D>(filename)))
     |> Map.ofSeq
 
-let drawGame delta (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
-    spriteBatch.Draw(textures.[Avatar],new Rectangle(0,0,32,32),Color.White)
-    spriteBatch.Draw(textures.[Dollar],new Rectangle(32,0,32,32),Color.White)
+let drawTexture textureId (x,y) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
+    let texture = textures.[textureId]
+    spriteBatch.Draw (textures.[textureId], new Rectangle(x, y, texture.Width, texture.Height), Color.White)
+    (textures, spriteBatch)
 
-type MyGame<'textureKey when 'textureKey: comparison> (textureLoader: ContentManager -> Map<'textureKey, Texture2D>, gameRenderer : GameTime -> Map<'textureKey,Texture2D> -> SpriteBatch -> unit) as this=
-    inherit Game()
-    do
-        this.Content.RootDirectory <- "Content"
-    let graphics = new GraphicsDeviceManager(this)
-    let mutable spriteBatch: SpriteBatch = null
-    let mutable textures: Map<'textureKey, Texture2D> = Map.empty
-    override this.Initialize() =
-        spriteBatch <- new SpriteBatch(this.GraphicsDevice)
-        base.Initialize()
-    override this.LoadContent() = 
-        textures <- this.Content |> textureLoader 
-    override this.Update delta =
-        ()
-    override this.Draw delta =
-        Color.Black 
-        |> this.GraphicsDevice.Clear
-        spriteBatch.Begin()
-        gameRenderer delta textures spriteBatch
-        spriteBatch.End()
+let drawGame delta (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
+    let boardState = loadBoardState()
+    (textures, spriteBatch)
+    ||> drawTexture Playfield (0,0)
+    ||> drawTexture Avatar (32 * (boardState.Player |> fst),32 * (boardState.Player |> snd))
+    ||> drawTexture Dollar (32 * (boardState.Dollar |> fst),32 * (boardState.Dollar |> snd))
+    |> ignore
+
+let updateGame delta =
+    let keyboardState = Keyboard.GetState()
+
+    loadBoardState()
+    |> moveAvatar keyboardState
+    |> updateKeyboardState keyboardState
+    |> saveBoardState
