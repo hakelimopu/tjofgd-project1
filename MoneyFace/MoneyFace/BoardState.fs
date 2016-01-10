@@ -2,6 +2,7 @@
 
 open System
 open Microsoft.Xna.Framework.Input
+open Microsoft.Xna.Framework
 
 let boardColumns = 20
 let boardRows = 20
@@ -15,19 +16,26 @@ type BoardState =
     {Player: int*int;
     Dollar: int*int;
     Score: int;
-    KeyboardState: KeyboardState}
+    KeyboardState: KeyboardState;
+    TimeRemaining: TimeSpan}
 
-let mutable private boardState = 
+type GameState = 
+    | PlayState of BoardState
+    | GameOverState of BoardState
+
+let mutable private gameState =
     {Player=randomBoardPosition ();
     Dollar=randomBoardPosition (); 
     Score=0; 
-    KeyboardState = Keyboard.GetState()}
+    KeyboardState = Keyboard.GetState();
+    TimeRemaining = new TimeSpan(0,0,60)}
+    |> PlayState
 
-let loadBoardState () =
-    boardState
+let loadGameState () =
+    gameState
 
-let saveBoardState newBoardState =
-    boardState <- newBoardState
+let saveGameState newBoardState =
+    gameState <- newBoardState
 
 let updateKeyboardState keyboardState boardState =
     {boardState with KeyboardState = keyboardState}
@@ -72,3 +80,5 @@ let moveAvatar (keyboardState :KeyboardState) boardState =
     {boardState with Player=delta |> addLocation boardState.Player}
     |> eatDollar
 
+let decreaseTime (delta: GameTime) boardState =
+    {boardState with TimeRemaining = boardState.TimeRemaining - delta.ElapsedGameTime}
