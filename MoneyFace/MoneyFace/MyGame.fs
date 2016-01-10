@@ -41,8 +41,8 @@ let drawLetter (x,y) (ch: char) (textures:Map<TextureId,Texture2D>) (spriteBatch
         | '9' -> 72
         | _ -> 0
     let texture = textures.[ScoreFont]
-    let dst = new Rectangle(x,y,x+8,y+8)
-    let src = new Nullable<Rectangle>(new Rectangle(number,0,number+8,8))
+    let dst = new Rectangle(x,y,8,8)
+    let src = new Nullable<Rectangle>(new Rectangle(number,0,8,8))
     spriteBatch.Draw (texture, dst, src, Color.White)
 
 let drawScore (x,y) score (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
