@@ -7,22 +7,26 @@ open Microsoft.Xna.Framework.Input
 open BoardState
 open System
 
+type FontId = 
+    | Normal
+
 type TextureId = 
     | Avatar
     | Dollar
     | Playfield
     | ScoreFont
-    | ScoreLabel
-    | TimeLabel
 
 let loadTextures (contentManager:ContentManager) =
     [(Avatar    , "avatar"    ); 
      (Dollar    , "dollar"    );
      (ScoreFont , "scorefont" );
-     (ScoreLabel, "scorelabel");
-     (TimeLabel , "timelabel" );
      (Playfield , "playfield" )]
     |> Seq.map(fun (id, filename) -> (id, contentManager.Load<Texture2D>(filename)))
+    |> Map.ofSeq
+
+let loadFonts (contentManager:ContentManager) =
+    [(Normal, "font")]
+    |> Seq.map(fun (id, filename) -> (id, contentManager.Load<SpriteFont>(filename)))
     |> Map.ofSeq
 
 let drawTexture textureId (x,y) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
@@ -57,6 +61,9 @@ let drawScore (dw,dh) (x,y) score (textures:Map<TextureId,Texture2D>) (spriteBat
     |> ignore
     (textures, spriteBatch)
 
+let drawText (x,y) (text:string) (color:Color) (font:SpriteFont) (spriteBatch: SpriteBatch)=
+    spriteBatch.DrawString(font,text,new Vector2(x |> float32,y |> float32),color)
+
 let drawSeconds (dw,dh) (x,y) (timeSpan:TimeSpan) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
     [for c in (timeSpan.TotalSeconds |> int |> sprintf "%i") -> c]
     |> List.fold (fun acc ch -> 
@@ -67,21 +74,21 @@ let drawSeconds (dw,dh) (x,y) (timeSpan:TimeSpan) (textures:Map<TextureId,Textur
 
 let statusPanelX = 36 * BoardState.boardColumns
 
-let drawPlayState delta boardState (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
+let drawPlayState delta boardState (fonts:Map<FontId,SpriteFont>) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
     (textures, spriteBatch)
     ||> drawTexture Playfield (0,0)
-    ||> drawTexture ScoreLabel (statusPanelX,0)
-    ||> drawTexture TimeLabel (statusPanelX,60)
     ||> drawTexture Avatar (36 * (boardState.Player |> fst),36 * (boardState.Player |> snd))
     ||> drawTexture Dollar (36 * (boardState.Dollar |> fst),36 * (boardState.Dollar |> snd))
     ||> drawScore (30,30) (statusPanelX, 30) boardState.Score
     ||> drawSeconds (30,30) (statusPanelX, 90) boardState.TimeRemaining
     |> ignore
+    spriteBatch |> drawText (statusPanelX,0) "Score" Color.White fonts.[Normal]
+    spriteBatch |> drawText (statusPanelX,60) "Time" Color.White fonts.[Normal]
     
-let drawGame delta (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
+let drawGame delta (fonts:Map<FontId,SpriteFont>) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with
-    | PlayState boardState -> drawPlayState delta boardState textures spriteBatch
-    | GameOverState boardState -> drawPlayState delta boardState textures spriteBatch
+    | PlayState boardState -> drawPlayState delta boardState fonts textures spriteBatch
+    | GameOverState boardState -> drawPlayState delta boardState fonts textures spriteBatch
 
 let clampAvatar boardState = 
     let x,y = boardState.Player
@@ -115,12 +122,12 @@ let updatePlayState delta boardState =
 
 let updateGameOverState delta boardState = 
     let keyboardState = Keyboard.GetState()
-    boardState 
-    |> updateKeyboardState keyboardState
-    |> if boardState.KeyboardState.IsKeyUp(Keys.F2) && keyboardState.IsKeyDown(Keys.F2) then
-            PlayState
-        else
-            GameOverState
+    if boardState.KeyboardState.IsKeyUp(Keys.F2) && keyboardState.IsKeyDown(Keys.F2) then
+        newGame()
+    else
+        boardState 
+        |> updateKeyboardState keyboardState
+        |> GameOverState
 
 
 let updateGame delta =

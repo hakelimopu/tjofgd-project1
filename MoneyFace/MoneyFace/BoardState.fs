@@ -23,13 +23,16 @@ type GameState =
     | PlayState of BoardState
     | GameOverState of BoardState
 
-let mutable private gameState =
+let newGame () = 
     {Player=randomBoardPosition ();
     Dollar=randomBoardPosition (); 
     Score=0; 
     KeyboardState = Keyboard.GetState();
     TimeRemaining = new TimeSpan(0,0,60)}
     |> PlayState
+
+let mutable private gameState =
+    newGame()
 
 let loadGameState () =
     gameState
