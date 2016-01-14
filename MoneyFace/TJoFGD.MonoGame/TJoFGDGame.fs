@@ -4,8 +4,8 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Content
 
-type TJoFGDGame<'textureKey,'fontKey when 'textureKey: comparison and 'fontKey: comparison> 
-        (backBufferWidth, backBufferHeight, textureLoader: ContentManager -> Map<'textureKey, Texture2D>, fontLoader: ContentManager -> Map<'fontKey, SpriteFont>, gameUpdater, gameRenderer : GameTime -> Map<'fontKey,SpriteFont> -> Map<'textureKey,Texture2D> -> SpriteBatch -> unit, backgroundColor) as this=
+type TJoFGDGame<'assetKey,'assetValue when 'assetKey: comparison> 
+        (backBufferWidth, backBufferHeight, assetLoader: ContentManager -> Map<'assetKey, 'assetValue>, gameUpdater, gameRenderer : GameTime -> Map<'assetKey,'assetValue> -> SpriteBatch -> unit, backgroundColor) as this=
     inherit Game()
 
     do
@@ -14,8 +14,7 @@ type TJoFGDGame<'textureKey,'fontKey when 'textureKey: comparison and 'fontKey: 
     let graphics = new GraphicsDeviceManager(this)
 
     let mutable spriteBatch: SpriteBatch = null
-    let mutable textures: Map<'textureKey, Texture2D> = Map.empty
-    let mutable fonts: Map<'fontKey, SpriteFont> = Map.empty
+    let mutable assets: Map<'assetKey, 'assetValue> = Map.empty
 
     override this.Initialize() =
         graphics.PreferredBackBufferWidth <- backBufferWidth
@@ -25,8 +24,7 @@ type TJoFGDGame<'textureKey,'fontKey when 'textureKey: comparison and 'fontKey: 
         base.Initialize()
 
     override this.LoadContent() = 
-        textures <- this.Content |> textureLoader 
-        fonts <- this.Content |> fontLoader 
+        assets <- this.Content |> assetLoader 
 
     override this.Update delta =
         delta
@@ -36,7 +34,7 @@ type TJoFGDGame<'textureKey,'fontKey when 'textureKey: comparison and 'fontKey: 
         backgroundColor 
         |> this.GraphicsDevice.Clear
         spriteBatch.Begin()
-        gameRenderer delta fonts textures spriteBatch
+        gameRenderer delta assets spriteBatch
         spriteBatch.End()
 
 

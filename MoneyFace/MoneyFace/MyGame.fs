@@ -7,88 +7,72 @@ open Microsoft.Xna.Framework.Input
 open BoardState
 open System
 
-type FontId = 
-    | Normal
+type AssetId =
+    | Normal_Font
+    | Miramonte_Font
+    | Avatar_Texture
+    | Dollar_Texture
+    | Playfield_Texture
 
-type TextureId = 
-    | Avatar
-    | Dollar
-    | Playfield
-    | ScoreFont
+type AssetType<'texture,'font> =
+    | Texture of 'texture
+    | Font of 'font
 
-let loadTextures (contentManager:ContentManager) =
-    [(Avatar    , "avatar"    ); 
-     (Dollar    , "dollar"    );
-     (ScoreFont , "scorefont" );
-     (Playfield , "playfield" )]
-    |> Seq.map(fun (id, filename) -> (id, contentManager.Load<Texture2D>(filename)))
+let getTexture (asset:AssetType<'texture,'font>) =
+    match asset with
+    | Texture value -> Some value
+    | _ -> None
+
+let getFont (asset:AssetType<'texture,'font>) =
+    match asset with
+    | Font value -> Some value
+    | _ -> None
+
+let loadAsset (contentManager:ContentManager) (id,asset) =
+    let loadedAsset = 
+        match asset with
+        | Texture fileName -> Texture (contentManager.Load<Texture2D>(fileName))
+        | Font fileName -> Font (contentManager.Load<SpriteFont>(fileName))
+    (id, loadedAsset)
+
+let loadAssets (contentManager:ContentManager) =
+    [(Normal_Font, Font "font");
+    (Miramonte_Font, Font "miramonte");
+    (Avatar_Texture, Texture "avatar");
+    (Dollar_Texture, Texture "dollar");
+    (Playfield_Texture, Texture "playfield")]
+    |> Seq.map (loadAsset contentManager)
     |> Map.ofSeq
 
-let loadFonts (contentManager:ContentManager) =
-    [(Normal, "font")]
-    |> Seq.map(fun (id, filename) -> (id, contentManager.Load<SpriteFont>(filename)))
-    |> Map.ofSeq
-
-let drawTexture textureId (x,y) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
-    let texture = textures.[textureId]
-    spriteBatch.Draw (textures.[textureId], new Rectangle(x, y, texture.Width, texture.Height), Color.White)
-    (textures, spriteBatch)
-
-let drawDigit (dw,dh) (x,y) (ch: char) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
-    let number =
-        match ch with
-        | '0' -> 0
-        | '1' -> 1
-        | '2' -> 2
-        | '3' -> 3
-        | '4' -> 4
-        | '5' -> 5
-        | '6' -> 6
-        | '7' -> 7
-        | '8' -> 8
-        | '9' -> 9
-        | _ -> 0
-    let texture = textures.[ScoreFont]
-    let dst = new Rectangle(x,y,dw,dh)
-    let src = new Nullable<Rectangle>(new Rectangle(number*8,0,8,8))
-    spriteBatch.Draw (texture, dst, src, Color.White)
-
-let drawScore (dw,dh) (x,y) score (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) =
-    [for c in (score |> sprintf "%i") -> c]
-    |> List.fold (fun acc ch -> 
-        drawDigit (dw, dh) (acc,y) ch textures spriteBatch
-        acc + dw) x
-    |> ignore
-    (textures, spriteBatch)
+let drawTexture (x,y) (texture:Texture2D) (spriteBatch: SpriteBatch) =
+    spriteBatch.Draw (texture, new Rectangle(x, y, texture.Width, texture.Height), Color.White)
 
 let drawText (x,y) (text:string) (color:Color) (font:SpriteFont) (spriteBatch: SpriteBatch)=
     spriteBatch.DrawString(font,text,new Vector2(x |> float32,y |> float32),color)
 
-let drawSeconds (dw,dh) (x,y) (timeSpan:TimeSpan) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
-    [for c in (timeSpan.TotalSeconds |> int |> sprintf "%i") -> c]
-    |> List.fold (fun acc ch -> 
-        drawDigit (dw, dh) (acc,y) ch textures spriteBatch
-        acc + dw) x
-    |> ignore
-    (textures, spriteBatch)
+let drawScore xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
+    let text = score |> sprintf "%i"
+    drawText xy text Color.White font spriteBatch
+
+let drawSeconds xy (timeSpan:TimeSpan) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
+    let text = timeSpan.TotalSeconds |> int |> sprintf "%i"
+    drawText xy text Color.White font spriteBatch
 
 let statusPanelX = 36 * BoardState.boardColumns
 
-let drawPlayState delta boardState (fonts:Map<FontId,SpriteFont>) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
-    (textures, spriteBatch)
-    ||> drawTexture Playfield (0,0)
-    ||> drawTexture Avatar (36 * (boardState.Player |> fst),36 * (boardState.Player |> snd))
-    ||> drawTexture Dollar (36 * (boardState.Dollar |> fst),36 * (boardState.Dollar |> snd))
-    ||> drawScore (30,30) (statusPanelX, 30) boardState.Score
-    ||> drawSeconds (30,30) (statusPanelX, 90) boardState.TimeRemaining
-    |> ignore
-    spriteBatch |> drawText (statusPanelX,0) "Score" Color.White fonts.[Normal]
-    spriteBatch |> drawText (statusPanelX,60) "Time" Color.White fonts.[Normal]
+let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont>>) (spriteBatch: SpriteBatch) = 
+    spriteBatch |> drawTexture (0,0) (assets.[Playfield_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawTexture (36 * (boardState.Player |> fst),36 * (boardState.Player |> snd)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawTexture (36 * (boardState.Dollar |> fst),36 * (boardState.Dollar |> snd)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawText (statusPanelX,0) "Score" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (statusPanelX,60) "Time" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawScore (statusPanelX, 30) boardState.Score (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawSeconds (statusPanelX, 90) boardState.TimeRemaining (assets.[Miramonte_Font] |> getFont |> Option.get)
     
-let drawGame delta (fonts:Map<FontId,SpriteFont>) (textures:Map<TextureId,Texture2D>) (spriteBatch: SpriteBatch) = 
+let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont>>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with
-    | PlayState boardState -> drawPlayState delta boardState fonts textures spriteBatch
-    | GameOverState boardState -> drawPlayState delta boardState fonts textures spriteBatch
+    | PlayState boardState -> drawPlayState delta boardState assets spriteBatch
+    | GameOverState boardState -> drawPlayState delta boardState assets spriteBatch
 
 let clampAvatar boardState = 
     let x,y = boardState.Player

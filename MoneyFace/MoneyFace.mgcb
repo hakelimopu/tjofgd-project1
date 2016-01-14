@@ -13,9 +13,9 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin MoneyFace/Content/font.spritefont
+#begin miramonte.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:TextureFormat=Compressed
-/build:MoneyFace/Content/font.spritefont
+/build:miramonte.spritefont
 
