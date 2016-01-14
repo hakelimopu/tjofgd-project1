@@ -19,3 +19,9 @@
 /processorParam:TextureFormat=Compressed
 /build:miramonte.spritefont
 
+#begin coin.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:coin.wav
+

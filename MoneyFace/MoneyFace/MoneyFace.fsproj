@@ -56,7 +56,10 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="BoardState.fs" />
-    <Compile Include="MyGame.fs" />
+    <Compile Include="AssetType.fs" />
+    <Compile Include="Assets.fs" />
+    <Compile Include="Render.fs" />
+    <Compile Include="Update.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
@@ -73,6 +76,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\miramonte.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Content\coin.wav" />
+    <Content Include="Content\coin.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

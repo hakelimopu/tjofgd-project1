@@ -12,14 +12,19 @@ let random = new Random()
 let randomBoardPosition () =
     (random.Next(boardColumns), random.Next(boardRows))
 
+type BoardEvent =
+    | PickUpDollar
+
 type BoardState =
     {Player: int*int;
     Dollar: int*int;
     Score: int;
     KeyboardState: KeyboardState;
+    BoardEvents: Set<BoardEvent>;
     TimeRemaining: TimeSpan}
 
 type GameState = 
+    | TitleScreen
     | PlayState of BoardState
     | GameOverState of BoardState
 
@@ -28,11 +33,12 @@ let newGame () =
     Dollar=randomBoardPosition (); 
     Score=0; 
     KeyboardState = Keyboard.GetState();
+    BoardEvents = Set.empty;
     TimeRemaining = new TimeSpan(0,0,60)}
     |> PlayState
 
 let mutable private gameState =
-    newGame()
+    TitleScreen
 
 let loadGameState () =
     gameState
@@ -71,9 +77,13 @@ let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardSta
     |> Seq.map (lookUpDeltaForKey oldKeyboardState keyboardState)
     |> Seq.reduce addLocation
 
+let addEvent event boardState =
+    {boardState with BoardEvents = event |> boardState.BoardEvents.Add}
+
 let eatDollar boardState = 
     if boardState.Player = boardState.Dollar then
         {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
+        |> addEvent PickUpDollar
     else
         boardState
 
@@ -85,3 +95,8 @@ let moveAvatar (keyboardState :KeyboardState) boardState =
 
 let decreaseTime (delta: GameTime) boardState =
     {boardState with TimeRemaining = boardState.TimeRemaining - delta.ElapsedGameTime}
+
+
+let clearEvents boardState = 
+    {boardState with BoardEvents = Set.empty}
+
