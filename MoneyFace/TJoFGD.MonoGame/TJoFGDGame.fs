@@ -6,7 +6,7 @@ open Microsoft.Xna.Framework.Content
 
 [<Measure>]type px
 
-[<Measure>]type seconds
+[<Measure>]type second
 
 
 type TJoFGDGame<'assetKey,'assetValue when 'assetKey: comparison> 
@@ -32,7 +32,7 @@ type TJoFGDGame<'assetKey,'assetValue when 'assetKey: comparison>
         assets <- this.Content |> assetLoader 
 
     override this.Update delta =
-        delta.ElapsedGameTime.TotalSeconds * 1.0<seconds>
+        delta.ElapsedGameTime.TotalSeconds * 1.0<second>
         |> gameUpdater 
 
     override this.Draw delta =

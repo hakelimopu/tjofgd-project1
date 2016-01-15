@@ -27,7 +27,7 @@ type BoardState =
     Score: int;
     KeyboardState: KeyboardState;
     BoardEvents: Set<BoardEvent>;
-    TimeRemaining: float<seconds>}
+    TimeRemaining: float<second>}
 
 type GameState = 
     | TitleScreen
@@ -40,7 +40,7 @@ let newGame () =
     Score=0; 
     KeyboardState = Keyboard.GetState();
     BoardEvents = Set.empty;
-    TimeRemaining = 60.0<seconds>}
+    TimeRemaining = 60.0<second>}
     |> PlayState
 
 let mutable private gameState =
@@ -55,16 +55,14 @@ let saveGameState newBoardState =
 let updateKeyboardState keyboardState boardState =
     {boardState with KeyboardState = keyboardState}
 
-let addLocation first second = 
-    let firstX, firstY = first
-    let secondX, secondY = second
+let addLocation (firstX:float<'u>, firstY:float<'u>) (secondX:float<'u>, secondY:float<'u>) = 
     (firstX + secondX, firstY + secondY)
 
 let movementTable =
-    [(Keys.Up,    ( 0.0<px>, -pixelsPerCell * 1.0<cell>));
-     (Keys.Down,  ( 0.0<px>,  pixelsPerCell * 1.0<cell>));
-     (Keys.Left,  (-pixelsPerCell * 1.0<cell>,  0.0<px>));
-     (Keys.Right, ( pixelsPerCell * 1.0<cell>,  0.0<px>))]
+    [(Keys.Up,    ( 0.0<px/second>, -pixelsPerCell * 2.5<cell/second>));
+     (Keys.Down,  ( 0.0<px/second>,  pixelsPerCell * 2.5<cell/second>));
+     (Keys.Left,  (-pixelsPerCell * 2.5<cell/second>,  0.0<px/second>));
+     (Keys.Right, ( pixelsPerCell * 2.5<cell/second>,  0.0<px/second>))]
     |> Map.ofSeq
 
 let movementKeys = 
@@ -73,10 +71,16 @@ let movementKeys =
     |> Seq.map (fun (k,v)->k)
 
 let lookUpDeltaForKey (oldKeyboardState :KeyboardState) (keyboardState :KeyboardState) key =
-    if movementTable.ContainsKey(key) && oldKeyboardState.IsKeyUp(key) && keyboardState.IsKeyDown(key) then 
+    if movementTable.ContainsKey(key) && keyboardState.IsKeyDown(key) then 
         movementTable.[key] 
     else 
-        (0.0<px>,0.0<px>)
+        (0.0<px/second>,0.0<px/second>)
+
+let distance (firstX:float<'u>,firstY:float<'u>) (secondX:float<'u>,secondY:float<'u>) =
+    let deltaX = firstX - secondX
+    let deltaY = firstY - secondY
+    deltaX * deltaX + deltaY * deltaY
+    |> sqrt
 
 let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardState) =
     movementKeys
@@ -86,12 +90,6 @@ let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardSta
 let addEvent event boardState =
     {boardState with BoardEvents = event |> boardState.BoardEvents.Add}
 
-let distance (firstX:float<px>,firstY:float<px>) (secondX:float<px>,secondY:float<px>) =
-    let deltaX = firstX - secondX
-    let deltaY = firstY - secondY
-    deltaX * deltaX + deltaY * deltaY
-    |> sqrt
-
 let eatDollar boardState = 
     if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
         {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
@@ -99,13 +97,14 @@ let eatDollar boardState =
     else
         boardState
 
-let moveAvatar (keyboardState :KeyboardState) boardState =
+let moveAvatar (delta:float<second>) (keyboardState :KeyboardState) boardState =
     let oldKeyboardState = boardState.KeyboardState
-    let delta = keyboardState |> determineDelta boardState.KeyboardState
-    {boardState with Player=delta |> addLocation boardState.Player}
+    let (velocityX,velocityY) = keyboardState |> determineDelta boardState.KeyboardState
+    let velocity = (velocityX * delta, velocityY * delta)
+    {boardState with Player= addLocation boardState.Player velocity}
     |> eatDollar
 
-let decreaseTime (delta: float<seconds>) boardState =
+let decreaseTime (delta: float<second>) boardState =
     {boardState with TimeRemaining = boardState.TimeRemaining - delta}
 
 

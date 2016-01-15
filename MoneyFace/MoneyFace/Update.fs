@@ -32,11 +32,11 @@ let updatePlayState delta boardState =
     let newBoardState = 
         boardState
         |> clearEvents
-        |> moveAvatar keyboardState
+        |> moveAvatar delta keyboardState
         |> clampAvatar 
         |> updateKeyboardState keyboardState
         |> decreaseTime delta
-    if newBoardState.TimeRemaining <= 0.0<seconds> then
+    if newBoardState.TimeRemaining <= 0.0<second> then
         newBoardState |> GameOverState
     else
         newBoardState |> PlayState

@@ -12,7 +12,7 @@ open Assets
 open TJoFGDGame
 
 let drawTexture (x,y) (texture:Texture2D) (spriteBatch: SpriteBatch) =
-    spriteBatch.Draw (texture, new Rectangle(x, y, texture.Width, texture.Height), Color.White)
+    spriteBatch.Draw (texture, new Rectangle(x - texture.Width/2, y - texture.Height/2, texture.Width, texture.Height), Color.White)
 
 let drawText (x,y) (text:string) (color:Color) (font:SpriteFont) (spriteBatch: SpriteBatch)=
     spriteBatch.DrawString(font,text,new Vector2(x |> float32,y |> float32),color)
@@ -21,7 +21,7 @@ let drawScore xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
     let text = score |> sprintf "%i"
     drawText xy text Color.White font spriteBatch
 
-let drawSeconds xy (seconds:float<seconds>) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
+let drawSeconds xy (seconds:float<second>) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
     let text = seconds |> int |> sprintf "%i"
     drawText xy text Color.White font spriteBatch
 
@@ -37,7 +37,7 @@ let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>
 
 let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     boardState |> handleEvents assets
-    spriteBatch |> drawTexture (0,0) (assets.[Playfield_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawTexture (boardColumns * pixelsPerCell / 2.0<px> |> int, boardRows * pixelsPerCell / 2.0<px> |> int) (assets.[Playfield_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawTexture (((boardState.Player |> fst) / 1.0<px> |> int),((boardState.Player |> snd) / 1.0<px> |> int)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawTexture (((boardState.Dollar |> fst) / 1.0<px> |> int),((boardState.Dollar |> snd) / 1.0<px> |> int)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,0) "Score" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
