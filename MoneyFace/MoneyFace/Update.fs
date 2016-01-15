@@ -9,19 +9,20 @@ open BoardState
 open System
 open AssetType
 open Assets
+open TJoFGDGame
 
 let clampAvatar boardState = 
     let x,y = boardState.Player
     let clamped = 
         (
         match x with
-        | v when v < 0 -> 0
-        | v when v >= BoardState.boardColumns -> (boardColumns - 1)
+        | v when v < 0.0<px> -> 0.0<px>
+        | v when v >= boardColumns * pixelsPerCell -> (boardColumns * pixelsPerCell - 1.0<cell> * pixelsPerCell)
         | _ -> x
         ,
         match y with
-        | v when v < 0 -> 0
-        | v when v >= BoardState.boardColumns -> (boardRows - 1)
+        | v when v < 0.0<px> -> 0.0<px>
+        | v when v >= boardRows * pixelsPerCell -> (boardRows * pixelsPerCell - 1.0<cell> * pixelsPerCell)
         | _ -> y
         )
     {boardState with Player=clamped}
@@ -35,7 +36,7 @@ let updatePlayState delta boardState =
         |> clampAvatar 
         |> updateKeyboardState keyboardState
         |> decreaseTime delta
-    if newBoardState.TimeRemaining.TotalSeconds <= 0. then
+    if newBoardState.TimeRemaining <= 0.0<seconds> then
         newBoardState |> GameOverState
     else
         newBoardState |> PlayState

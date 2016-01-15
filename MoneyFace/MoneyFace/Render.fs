@@ -9,6 +9,7 @@ open BoardState
 open System
 open AssetType
 open Assets
+open TJoFGDGame
 
 let drawTexture (x,y) (texture:Texture2D) (spriteBatch: SpriteBatch) =
     spriteBatch.Draw (texture, new Rectangle(x, y, texture.Width, texture.Height), Color.White)
@@ -20,11 +21,11 @@ let drawScore xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
     let text = score |> sprintf "%i"
     drawText xy text Color.White font spriteBatch
 
-let drawSeconds xy (timeSpan:TimeSpan) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
-    let text = timeSpan.TotalSeconds |> int |> sprintf "%i"
+let drawSeconds xy (seconds:float<seconds>) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
+    let text = seconds |> int |> sprintf "%i"
     drawText xy text Color.White font spriteBatch
 
-let statusPanelX = 36 * BoardState.boardColumns
+let statusPanelX = 36.0 * BoardState.boardColumns
 
 let handleEvent (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) boardState event =
     match event with
@@ -37,15 +38,16 @@ let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>
 let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     boardState |> handleEvents assets
     spriteBatch |> drawTexture (0,0) (assets.[Playfield_Texture] |> getTexture |> Option.get)
-    spriteBatch |> drawTexture (36 * (boardState.Player |> fst),36 * (boardState.Player |> snd)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
-    spriteBatch |> drawTexture (36 * (boardState.Dollar |> fst),36 * (boardState.Dollar |> snd)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
-    spriteBatch |> drawText (statusPanelX,0) "Score" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
-    spriteBatch |> drawText (statusPanelX,60) "Time" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
-    spriteBatch |> drawScore (statusPanelX, 30) boardState.Score (assets.[Miramonte_Font] |> getFont |> Option.get)
-    spriteBatch |> drawSeconds (statusPanelX, 90) boardState.TimeRemaining (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawTexture (((boardState.Player |> fst) / 1.0<px> |> int),((boardState.Player |> snd) / 1.0<px> |> int)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawTexture (((boardState.Dollar |> fst) / 1.0<px> |> int),((boardState.Dollar |> snd) / 1.0<px> |> int)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
+    spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,0) "Score" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,60) "Time" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawScore (statusPanelX / 1.0<px> |> int, 30) boardState.Score (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawSeconds (statusPanelX / 1.0<px> |> int, 90) boardState.TimeRemaining (assets.[Miramonte_Font] |> getFont |> Option.get)
     
 let drawTitleScreen delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
     spriteBatch |> drawText (0,0) "MoneyFace" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "F2 - Start Game" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
 
 let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with

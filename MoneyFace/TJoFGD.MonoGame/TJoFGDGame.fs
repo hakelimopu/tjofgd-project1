@@ -4,6 +4,11 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Content
 
+[<Measure>]type px
+
+[<Measure>]type seconds
+
+
 type TJoFGDGame<'assetKey,'assetValue when 'assetKey: comparison> 
         (backBufferWidth, backBufferHeight, assetLoader: ContentManager -> Map<'assetKey, 'assetValue>, gameUpdater, gameRenderer : GameTime -> Map<'assetKey,'assetValue> -> SpriteBatch -> unit, backgroundColor) as this=
     inherit Game()
@@ -27,7 +32,7 @@ type TJoFGDGame<'assetKey,'assetValue when 'assetKey: comparison>
         assets <- this.Content |> assetLoader 
 
     override this.Update delta =
-        delta
+        delta.ElapsedGameTime.TotalSeconds * 1.0<seconds>
         |> gameUpdater 
 
     override this.Draw delta =

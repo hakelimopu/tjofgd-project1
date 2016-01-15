@@ -3,25 +3,31 @@
 open System
 open Microsoft.Xna.Framework.Input
 open Microsoft.Xna.Framework
+open TJoFGDGame
 
-let boardColumns = 20
-let boardRows = 20
+[<Measure>]type cell
+
+let boardColumns = 20.0<cell>
+let boardRows = 20.0<cell>
+
+let pixelsPerCell = 36.0<px/cell>
+
 
 let random = new Random()
 
 let randomBoardPosition () =
-    (random.Next(boardColumns), random.Next(boardRows))
+    (random.NextDouble() * boardColumns * pixelsPerCell, random.NextDouble() * boardRows * pixelsPerCell)
 
 type BoardEvent =
     | PickUpDollar
 
 type BoardState =
-    {Player: int*int;
-    Dollar: int*int;
+    {Player: float<px>*float<px>;
+    Dollar: float<px>*float<px>;
     Score: int;
     KeyboardState: KeyboardState;
     BoardEvents: Set<BoardEvent>;
-    TimeRemaining: TimeSpan}
+    TimeRemaining: float<seconds>}
 
 type GameState = 
     | TitleScreen
@@ -34,7 +40,7 @@ let newGame () =
     Score=0; 
     KeyboardState = Keyboard.GetState();
     BoardEvents = Set.empty;
-    TimeRemaining = new TimeSpan(0,0,60)}
+    TimeRemaining = 60.0<seconds>}
     |> PlayState
 
 let mutable private gameState =
@@ -55,10 +61,10 @@ let addLocation first second =
     (firstX + secondX, firstY + secondY)
 
 let movementTable =
-    [(Keys.Up,    ( 0, -1));
-     (Keys.Down,  ( 0,  1));
-     (Keys.Left,  (-1,  0));
-     (Keys.Right, ( 1,  0))]
+    [(Keys.Up,    ( 0.0<px>, -pixelsPerCell * 1.0<cell>));
+     (Keys.Down,  ( 0.0<px>,  pixelsPerCell * 1.0<cell>));
+     (Keys.Left,  (-pixelsPerCell * 1.0<cell>,  0.0<px>));
+     (Keys.Right, ( pixelsPerCell * 1.0<cell>,  0.0<px>))]
     |> Map.ofSeq
 
 let movementKeys = 
@@ -70,7 +76,7 @@ let lookUpDeltaForKey (oldKeyboardState :KeyboardState) (keyboardState :Keyboard
     if movementTable.ContainsKey(key) && oldKeyboardState.IsKeyUp(key) && keyboardState.IsKeyDown(key) then 
         movementTable.[key] 
     else 
-        (0,0)
+        (0.0<px>,0.0<px>)
 
 let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardState) =
     movementKeys
@@ -80,8 +86,14 @@ let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardSta
 let addEvent event boardState =
     {boardState with BoardEvents = event |> boardState.BoardEvents.Add}
 
+let distance (firstX:float<px>,firstY:float<px>) (secondX:float<px>,secondY:float<px>) =
+    let deltaX = firstX - secondX
+    let deltaY = firstY - secondY
+    deltaX * deltaX + deltaY * deltaY
+    |> sqrt
+
 let eatDollar boardState = 
-    if boardState.Player = boardState.Dollar then
+    if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
         {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
         |> addEvent PickUpDollar
     else
@@ -93,8 +105,8 @@ let moveAvatar (keyboardState :KeyboardState) boardState =
     {boardState with Player=delta |> addLocation boardState.Player}
     |> eatDollar
 
-let decreaseTime (delta: GameTime) boardState =
-    {boardState with TimeRemaining = boardState.TimeRemaining - delta.ElapsedGameTime}
+let decreaseTime (delta: float<seconds>) boardState =
+    {boardState with TimeRemaining = boardState.TimeRemaining - delta}
 
 
 let clearEvents boardState = 
