@@ -47,13 +47,36 @@ let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,Sprit
     
 let drawTitleScreen delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
     spriteBatch |> drawText (0,0) "MoneyFace" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
-    spriteBatch |> drawText (0,30) "F2 - Start Game" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "F1 - Instructions" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,60) "F2 - Start Game" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,90) "F3 - Options" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,120) "F4 - High Scores" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+
+let drawPausedState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+    spriteBatch |> drawText (0,0) "Paused" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "<SPACE> Unpause" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+
+let drawHelpState delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+    spriteBatch |> drawText (0,0) "Help" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+
+let drawOptionsState delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+    spriteBatch |> drawText (0,0) "Options" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+
+let drawHighScoreState delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+    spriteBatch |> drawText (0,0) "High Scores" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
 
 let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with
     | TitleScreen -> drawTitleScreen delta assets spriteBatch
     | PlayState boardState -> drawPlayState delta boardState assets spriteBatch
     | GameOverState boardState -> drawPlayState delta boardState assets spriteBatch
+    | PausedState boardState -> drawPausedState delta boardState assets spriteBatch
+    | HelpState  -> drawHelpState delta assets spriteBatch
+    | OptionsState  -> drawOptionsState delta assets spriteBatch
+    | HighScoreState  -> drawHighScoreState delta assets spriteBatch
 
 
 
