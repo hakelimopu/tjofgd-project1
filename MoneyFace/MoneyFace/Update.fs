@@ -27,11 +27,34 @@ let clampAvatar boardState =
         )
     {boardState with Player=clamped}
 
+let addGamePadButton (button:Buttons) (gamePadState:GamePadState) (set:Set<Buttons>) = 
+    if gamePadState.IsConnected && gamePadState.IsButtonDown(button) then
+        set
+        |> Set.add(button)
+    else
+        set
+
+let getGamePadButtons (gamePadState:GamePadState) = 
+    Set.empty<Buttons>
+    |> addGamePadButton Buttons.Start gamePadState
+    |> addGamePadButton Buttons.A gamePadState
+    |> addGamePadButton Buttons.B gamePadState
+    |> addGamePadButton Buttons.X gamePadState
+    |> addGamePadButton Buttons.Y gamePadState
+    |> addGamePadButton Buttons.Back gamePadState
+
+let getGamePadButtonPresses (oldGamePadState:GamePadState) (newGamePadState: GamePadState) =
+    let oldButtons = oldGamePadState |> getGamePadButtons
+    newGamePadState 
+    |> getGamePadButtons
+    |> Set.fold (fun state button->if oldButtons.Contains(button) then state else state |> Set.add(button)) Set.empty<Buttons>
+
 //TODO: please clean me up!
 let updatePlayState delta boardState = 
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
-    if boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space) then
+    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
+    if (boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space)) || buttons.Contains(Buttons.B)  then
         boardState
         |> updateKeyboardState keyboardState
         |> updateGamePadState gamePadState
@@ -40,7 +63,7 @@ let updatePlayState delta boardState =
         let newBoardState = 
             boardState
             |> clearEvents
-            |> moveAvatar delta keyboardState
+            |> moveAvatar delta gamePadState keyboardState
             |> clampAvatar 
             |> updateKeyboardState keyboardState
             |> updateGamePadState gamePadState
@@ -53,54 +76,66 @@ let updatePlayState delta boardState =
 
 let updateGameOverState delta boardState = 
     let keyboardState = Keyboard.GetState()
-    if boardState.KeyboardState.IsKeyUp(Keys.F2) && keyboardState.IsKeyDown(Keys.F2) then
+    let gamePadState = GamePad.GetState(PlayerIndex.One)
+    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
+    if (boardState.KeyboardState.IsKeyUp(Keys.F2) && keyboardState.IsKeyDown(Keys.F2)) || buttons.Contains(Buttons.Start) then
         newGame()
     else
         boardState 
         |> updateKeyboardState keyboardState
+        |> updateGamePadState gamePadState
         |> GameOverState
 
 let updatePausedState delta boardState = 
     let keyboardState = Keyboard.GetState()
-    if boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space) then
+    let gamePadState = GamePad.GetState(PlayerIndex.One)
+    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
+    if (boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space)) || buttons.Contains(Buttons.B) then
         boardState
         |> updateKeyboardState keyboardState
+        |> updateGamePadState gamePadState
         |> PlayState
     else
         boardState 
         |> updateKeyboardState keyboardState
+        |> updateGamePadState gamePadState
         |> PausedState
 
 let updateTitleScreen delta =
     let keyboardState = Keyboard.GetState()
-    if keyboardState.IsKeyDown(Keys.F1) then
+    let gamePadState = GamePad.GetState(PlayerIndex.One)
+    let buttons = gamePadState |> getGamePadButtons
+    if keyboardState.IsKeyDown(Keys.F1) || buttons.Contains(Buttons.X) then
         HelpState
-    elif keyboardState.IsKeyDown(Keys.F2) then
+    elif keyboardState.IsKeyDown(Keys.F2) || buttons.Contains(Buttons.Start) then
         newGame()
-    elif keyboardState.IsKeyDown(Keys.F3) then
+    elif keyboardState.IsKeyDown(Keys.F3) || buttons.Contains(Buttons.A) then
         OptionsState
-    elif keyboardState.IsKeyDown(Keys.F4) then
+    elif keyboardState.IsKeyDown(Keys.F4) || buttons.Contains(Buttons.Y) then
         HighScoreState
     else
         TitleScreen
     
 let updateHelpState delta =
     let keyboardState = Keyboard.GetState()
-    if keyboardState.IsKeyDown(Keys.Escape) then
+    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
+    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
         TitleScreen
     else
         HelpState
     
 let updateOptionsState delta =
     let keyboardState = Keyboard.GetState()
-    if keyboardState.IsKeyDown(Keys.Escape) then
+    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
+    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
         TitleScreen
     else
         OptionsState
     
 let updateHighScoreState delta =
     let keyboardState = Keyboard.GetState()
-    if keyboardState.IsKeyDown(Keys.Escape) then
+    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
+    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
         TitleScreen
     else
         HighScoreState

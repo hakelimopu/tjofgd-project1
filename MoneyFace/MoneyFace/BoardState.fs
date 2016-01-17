@@ -117,9 +117,13 @@ let eatDollar boardState =
     else
         boardState
 
-let moveAvatar (delta:float<second>) (keyboardState :KeyboardState) boardState =
+let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState :KeyboardState) boardState =
     let oldKeyboardState = boardState.KeyboardState
-    let (velocityX,velocityY) = keyboardState |> determineDelta boardState.KeyboardState
+    let (velocityX,velocityY) = 
+        if gamePadState.IsConnected then
+            ((gamePadState.ThumbSticks.Left.X |> float) * 1.0<1/second>, (gamePadState.ThumbSticks.Left.Y |> float) * -1.0<1/second>)
+        else
+            keyboardState |> determineDelta boardState.KeyboardState
     let unitDistance = normalMovementRate * pixelsPerCell * 1.0<second>
     let velocity = (unitDistance * velocityX * delta, unitDistance * velocityY * delta)
     {boardState with Player= addLocation boardState.Player velocity}
