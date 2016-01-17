@@ -12,6 +12,7 @@ let boardRows = 20.0<cell>
 
 let pixelsPerCell = 36.0<px/cell>
 let normalMovementRate = 5.0<cell/second>
+let heartCost = 5
 
 let random = new Random()
 
@@ -24,6 +25,7 @@ type BoardEvent =
 type BoardState =
     {Player: float<px>*float<px>;
     Dollar: float<px>*float<px>;
+    Heart: (float<px> * float<px>) option;
     Score: int;
     KeyboardState: KeyboardState;
     GamePadState: GamePadState;
@@ -43,6 +45,7 @@ let newGame () =
     {Player=randomBoardPosition ();
     Dollar=randomBoardPosition (); 
     Score=0; 
+    Heart = None;
     KeyboardState = Keyboard.GetState();
     GamePadState = GamePad.GetState(PlayerIndex.One);
     BoardEvents = Set.empty;
@@ -110,6 +113,12 @@ let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardSta
 let addEvent event boardState =
     {boardState with BoardEvents = event |> boardState.BoardEvents.Add}
 
+let showHeart boardState =
+    if boardState.Heart.IsNone && boardState.Score >= heartCost then
+        {boardState with Heart = randomBoardPosition() |> Some}
+    else
+        boardState
+
 let eatDollar boardState = 
     if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
         {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
@@ -128,6 +137,7 @@ let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState 
     let velocity = (unitDistance * velocityX * delta, unitDistance * velocityY * delta)
     {boardState with Player= addLocation boardState.Player velocity}
     |> eatDollar
+    |> showHeart
 
 let decreaseTime (delta: float<second>) boardState =
     {boardState with TimeRemaining = boardState.TimeRemaining - delta}

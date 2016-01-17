@@ -12,6 +12,7 @@ type AssetId =
     | Dollar_Texture
     | Playfield_Texture
     | Coin_SoundEffect
+    | Heart_Texture
 
 let loadAsset (contentManager:ContentManager) (id,asset) =
     let loadedAsset = 
@@ -24,6 +25,7 @@ let loadAsset (contentManager:ContentManager) (id,asset) =
 let loadAssets (contentManager:ContentManager) =
     [(Normal_Font, Font "font");
     (Coin_SoundEffect, AssetType.Effect "coin");
+    (Heart_Texture, AssetType.Texture "heart");
     (Miramonte_Font, Font "miramonte");
     (Avatar_Texture, AssetType.Texture "avatar");
     (Dollar_Texture, AssetType.Texture "dollar");

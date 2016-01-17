@@ -35,9 +35,18 @@ let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>
     boardState.BoardEvents
     |> Set.iter (handleEvent assets boardState)
 
+let drawTextureAsset (x,y) asset spriteBatch =
+    spriteBatch |> drawTexture ((x / 1.0<px> |> int),(y / 1.0<px> |> int)) (asset |> getTexture |> Option.get)
+
 let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     boardState |> handleEvents assets
+
     spriteBatch |> drawTexture (boardColumns * pixelsPerCell / 2.0<px> |> int, boardRows * pixelsPerCell / 2.0<px> |> int) (assets.[Playfield_Texture] |> getTexture |> Option.get)
+
+    match boardState.Heart with
+    | Some (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[Heart_Texture]
+    | None -> ()
+
     spriteBatch |> drawTexture (((boardState.Player |> fst) / 1.0<px> |> int),((boardState.Player |> snd) / 1.0<px> |> int)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawTexture (((boardState.Dollar |> fst) / 1.0<px> |> int),((boardState.Dollar |> snd) / 1.0<px> |> int)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,0) "Score" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
