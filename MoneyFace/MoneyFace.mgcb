@@ -25,3 +25,15 @@
 /processorParam:Quality=Best
 /build:coin.wav
 
+#begin heart.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:heart.wav
+
+#begin moodover.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:moodover.wav
+

@@ -67,7 +67,7 @@ let updatePlayState delta boardState =
             |> clampAvatar 
             |> updateKeyboardState keyboardState
             |> updateGamePadState gamePadState
-            |> decreaseTime delta
+            |> decreaseTimes delta
         if newBoardState.TimeRemaining <= 0.0<second> then
             newBoardState |> GameOverState
         else

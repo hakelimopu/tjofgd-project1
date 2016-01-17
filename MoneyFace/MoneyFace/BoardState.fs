@@ -13,6 +13,7 @@ let boardRows = 20.0<cell>
 let pixelsPerCell = 36.0<px/cell>
 let normalMovementRate = 5.0<cell/second>
 let heartCost = 5
+let moodTime = 15.0<second>
 
 let random = new Random()
 
@@ -21,6 +22,8 @@ let randomBoardPosition () =
 
 type BoardEvent =
     | PickUpDollar
+    | PickUpHeart
+    | MoodEffectOver
 
 type BoardState =
     {Player: float<px>*float<px>;
@@ -30,7 +33,8 @@ type BoardState =
     KeyboardState: KeyboardState;
     GamePadState: GamePadState;
     BoardEvents: Set<BoardEvent>;
-    TimeRemaining: float<second>}
+    TimeRemaining: float<second>;
+    MoodTimeRemaining: float<second>}
 
 type GameState = 
     | TitleScreen
@@ -49,7 +53,8 @@ let newGame () =
     KeyboardState = Keyboard.GetState();
     GamePadState = GamePad.GetState(PlayerIndex.One);
     BoardEvents = Set.empty;
-    TimeRemaining = 60.0<second>}
+    TimeRemaining = 60.0<second>;
+    MoodTimeRemaining = 0.0<second>}
     |> PlayState
 
 let mutable private gameState =
@@ -119,12 +124,25 @@ let showHeart boardState =
     else
         boardState
 
+let eatHeart boardState = 
+    if boardState.Heart.IsSome && ((boardState.Player |> distance (boardState.Heart |> Option.get)) / pixelsPerCell < 1.0<cell>) then
+        {boardState with Heart = None; Score = boardState.Score - heartCost; MoodTimeRemaining = moodTime}
+        |> addEvent PickUpHeart
+    else
+        boardState
+
 let eatDollar boardState = 
     if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
         {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
         |> addEvent PickUpDollar
     else
         boardState
+
+let getMovementMultipler boardState =
+    if boardState.MoodTimeRemaining > 0.0<second> then
+        2.0
+    else
+        1.0
 
 let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState :KeyboardState) boardState =
     let oldKeyboardState = boardState.KeyboardState
@@ -133,14 +151,25 @@ let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState 
             ((gamePadState.ThumbSticks.Left.X |> float) * 1.0<1/second>, (gamePadState.ThumbSticks.Left.Y |> float) * -1.0<1/second>)
         else
             keyboardState |> determineDelta boardState.KeyboardState
-    let unitDistance = normalMovementRate * pixelsPerCell * 1.0<second>
+    let unitDistance = normalMovementRate * pixelsPerCell * 1.0<second> * (boardState |> getMovementMultipler)
     let velocity = (unitDistance * velocityX * delta, unitDistance * velocityY * delta)
     {boardState with Player= addLocation boardState.Player velocity}
     |> eatDollar
+    |> eatHeart
     |> showHeart
 
-let decreaseTime (delta: float<second>) boardState =
+let decreaseMoodTime (delta: float<second>) boardState =
+    if boardState.MoodTimeRemaining = 0.0<second> then
+        boardState
+    elif delta > boardState.MoodTimeRemaining then
+        {boardState with MoodTimeRemaining = 0.0<second>}
+        |> addEvent MoodEffectOver
+    else
+        {boardState with MoodTimeRemaining = boardState.MoodTimeRemaining - delta}
+
+let decreaseTimes (delta: float<second>) boardState =
     {boardState with TimeRemaining = boardState.TimeRemaining - delta}
+    |> decreaseMoodTime delta
 
 
 let clearEvents boardState = 

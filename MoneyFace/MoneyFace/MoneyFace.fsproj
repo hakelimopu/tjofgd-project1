@@ -58,6 +58,7 @@
     <Compile Include="BoardState.fs" />
     <Compile Include="AssetType.fs" />
     <Compile Include="Assets.fs" />
+    <Compile Include="RenderUtility.fs" />
     <Compile Include="Render.fs" />
     <Compile Include="Update.fs" />
     <Compile Include="Program.fs" />
@@ -83,6 +84,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\heart.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\heartsfx.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\moodover.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
