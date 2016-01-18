@@ -13,7 +13,8 @@ type AssetId =
     | Playfield_Texture
     | Coin_SoundEffect
     | Heart_SoundEffect
-    | Heart_Texture
+    | Heart_Texture//Lorc
+    | SnowFlake_Texture//Lorc
     | MoodOver_SoundEffect
 
 let loadAsset (contentManager:ContentManager) (id,asset) =
@@ -30,6 +31,7 @@ let loadAssets (contentManager:ContentManager) =
     (Heart_SoundEffect, AssetType.Effect "heartsfx");
     (MoodOver_SoundEffect, AssetType.Effect "moodover");
     (Heart_Texture, AssetType.Texture "heart");
+    (SnowFlake_Texture, AssetType.Texture "snowflake");
     (Miramonte_Font, Font "miramonte");
     (Avatar_Texture, AssetType.Texture "avatar");
     (Dollar_Texture, AssetType.Texture "dollar");

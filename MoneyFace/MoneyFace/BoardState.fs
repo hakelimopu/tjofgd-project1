@@ -14,6 +14,8 @@ let pixelsPerCell = 36.0<px/cell>
 let normalMovementRate = 5.0<cell/second>
 let heartCost = 5
 let moodTime = 15.0<second>
+let freezeCost = 10
+let freezeTime = 60.0<second>
 
 let random = new Random()
 
@@ -24,16 +26,20 @@ type BoardEvent =
     | PickUpDollar
     | PickUpHeart
     | MoodEffectOver
+    | PickUpFreeze
+    | FreezeEffectOver
 
 type BoardState =
     {Player: float<px>*float<px>;
     Dollar: float<px>*float<px>;
     Heart: (float<px> * float<px>) option;
+    Freeze: (float<px> * float<px>) option;
     Score: int;
     KeyboardState: KeyboardState;
     GamePadState: GamePadState;
     BoardEvents: Set<BoardEvent>;
     TimeRemaining: float<second>;
+    FreezeTimeRemaining: float<second>;
     MoodTimeRemaining: float<second>}
 
 type GameState = 
@@ -50,10 +56,12 @@ let newGame () =
     Dollar=randomBoardPosition (); 
     Score=0; 
     Heart = None;
+    Freeze = None;
     KeyboardState = Keyboard.GetState();
     GamePadState = GamePad.GetState(PlayerIndex.One);
     BoardEvents = Set.empty;
     TimeRemaining = 60.0<second>;
+    FreezeTimeRemaining = 0.0<second>;
     MoodTimeRemaining = 0.0<second>}
     |> PlayState
 
@@ -121,6 +129,25 @@ let addEvent event boardState =
 let showHeart boardState =
     if boardState.Heart.IsNone && boardState.Score >= heartCost then
         {boardState with Heart = randomBoardPosition() |> Some}
+    elif boardState.Heart.IsSome && boardState.Score < heartCost then
+        {boardState with Heart = None}
+    else
+        boardState
+
+let showFreeze boardState =
+    if boardState.FreezeTimeRemaining > 0.0<second> then
+        {boardState with Freeze = None}
+    elif boardState.Freeze.IsNone && boardState.Score >= freezeCost then
+        {boardState with Freeze = randomBoardPosition() |> Some}
+    elif boardState.Freeze.IsSome && boardState.Score < freezeCost then
+        {boardState with Freeze = None}
+    else
+        boardState
+
+let eatFreeze boardState = 
+    if boardState.Freeze.IsSome && ((boardState.Player |> distance (boardState.Freeze |> Option.get)) / pixelsPerCell < 1.0<cell>) then
+        {boardState with Freeze = None; Score = boardState.Score - freezeCost; FreezeTimeRemaining = freezeTime}
+        |> addEvent PickUpFreeze
     else
         boardState
 
@@ -156,7 +183,18 @@ let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState 
     {boardState with Player= addLocation boardState.Player velocity}
     |> eatDollar
     |> eatHeart
+    |> eatFreeze
     |> showHeart
+    |> showFreeze
+
+let decreaseFreezeTime (delta: float<second>) boardState =
+    if boardState.FreezeTimeRemaining = 0.0<second> then
+        boardState
+    elif delta > boardState.FreezeTimeRemaining then
+        {boardState with FreezeTimeRemaining = 0.0<second>}
+        |> addEvent FreezeEffectOver
+    else
+        {boardState with FreezeTimeRemaining = boardState.FreezeTimeRemaining - delta}
 
 let decreaseMoodTime (delta: float<second>) boardState =
     if boardState.MoodTimeRemaining = 0.0<second> then
@@ -167,9 +205,17 @@ let decreaseMoodTime (delta: float<second>) boardState =
     else
         {boardState with MoodTimeRemaining = boardState.MoodTimeRemaining - delta}
 
+let decreaseTimeRemaining (delta: float<second>) boardState =
+    if boardState.FreezeTimeRemaining > 0.0<second> then
+        boardState
+    else
+        {boardState with TimeRemaining = boardState.TimeRemaining - delta}
+
 let decreaseTimes (delta: float<second>) boardState =
-    {boardState with TimeRemaining = boardState.TimeRemaining - delta}
+    boardState
+    |> decreaseTimeRemaining delta
     |> decreaseMoodTime delta
+    |> decreaseFreezeTime delta
 
 
 let clearEvents boardState = 

@@ -18,7 +18,9 @@ let handleEvent (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>
     match event with
     | BoardState.PickUpDollar -> (assets.[Coin_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
     | BoardState.PickUpHeart -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
+    | BoardState.PickUpFreeze -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore//GYOSFX
     | BoardState.MoodEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
+    | BoardState.FreezeEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore//GYOSFX
 
 let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) boardState =
     boardState.BoardEvents
@@ -36,6 +38,9 @@ let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,Sprit
     boardState.Heart
     |> Option.bind (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[Heart_Texture] |> Some)
     |> ignore
+    boardState.Freeze
+    |> Option.bind (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[SnowFlake_Texture] |> Some)
+    |> ignore
     spriteBatch |> drawTexture (((boardState.Player |> fst) / 1.0<px> |> int),((boardState.Player |> snd) / 1.0<px> |> int)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawTexture (((boardState.Dollar |> fst) / 1.0<px> |> int),((boardState.Dollar |> snd) / 1.0<px> |> int)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
 
@@ -47,6 +52,9 @@ let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,Sprit
 
     spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,120) "Mood" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
     spriteBatch |> drawSeconds (statusPanelX / 1.0<px> |> int, 150) boardState.MoodTimeRemaining (assets.[Miramonte_Font] |> getFont |> Option.get)
+
+    spriteBatch |> drawText (statusPanelX / 1.0<px> |> int,180) "Freeze" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawSeconds (statusPanelX / 1.0<px> |> int, 210) boardState.FreezeTimeRemaining (assets.[Miramonte_Font] |> getFont |> Option.get)
 
     
 let drawTitleScreen delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
