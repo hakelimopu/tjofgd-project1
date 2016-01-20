@@ -36,11 +36,9 @@ let drawPlayState delta boardState (assets:Map<AssetId,AssetType<Texture2D,Sprit
     spriteBatch |> drawTexture (Constants.boardColumns * Constants.pixelsPerCell / 2.0<px> |> int, Constants.boardRows * Constants.pixelsPerCell / 2.0<px> |> int) (assets.[Playfield_Texture] |> getTexture |> Option.get)
 
     boardState.Heart
-    |> Option.bind (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[Heart_Texture] |> Some)
-    |> ignore
+    |> Option.iter (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[Heart_Texture])
     boardState.Freeze
-    |> Option.bind (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[SnowFlake_Texture] |> Some)
-    |> ignore
+    |> Option.iter (fun (x,y) -> spriteBatch |> drawTextureAsset (x,y) assets.[SnowFlake_Texture])
     spriteBatch |> drawTexture (((boardState.Player |> fst) / 1.0<px> |> int),((boardState.Player |> snd) / 1.0<px> |> int)) (assets.[Avatar_Texture] |> getTexture |> Option.get)
     spriteBatch |> drawTexture (((boardState.Dollar |> fst) / 1.0<px> |> int),((boardState.Dollar |> snd) / 1.0<px> |> int)) (assets.[Dollar_Texture] |> getTexture |> Option.get)
 
