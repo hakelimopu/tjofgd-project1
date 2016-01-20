@@ -17,7 +17,7 @@ type AssetId =
     | SnowFlake_Texture//Lorc
     | MoodOver_SoundEffect
 
-let loadAsset (contentManager:ContentManager) (id,asset) =
+let private loadAsset (contentManager:ContentManager) (id,asset) =
     let loadedAsset = 
         match asset with
         | Texture fileName -> AssetType.Texture (contentManager.Load<Texture2D>(fileName))

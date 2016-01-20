@@ -10,12 +10,7 @@ let drawTexture (x,y) (texture:Texture2D) (spriteBatch: SpriteBatch) =
 let drawText (x,y) (text:string) (color:Color) (font:SpriteFont) (spriteBatch: SpriteBatch)=
     spriteBatch.DrawString(font,text,new Vector2(x |> float32,y |> float32),color)
 
-let drawScore xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
+let drawInt xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
     let text = score |> sprintf "%i"
     drawText xy text Color.White font spriteBatch
-
-let drawSeconds xy (seconds:float<second>) (font:SpriteFont) (spriteBatch: SpriteBatch) = 
-    let text = seconds |> int |> sprintf "%i"
-    drawText xy text Color.White font spriteBatch
-
 

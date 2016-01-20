@@ -4,23 +4,7 @@ open System
 open Microsoft.Xna.Framework.Input
 open Microsoft.Xna.Framework
 open TJoFGDGame
-
-[<Measure>]type cell
-
-let boardColumns = 20.0<cell>
-let boardRows = 20.0<cell>
-
-let pixelsPerCell = 36.0<px/cell>
-let normalMovementRate = 5.0<cell/second>
-let heartCost = 5
-let moodTime = 15.0<second>
-let freezeCost = 10
-let freezeTime = 60.0<second>
-
-let random = new Random()
-
-let randomBoardPosition () =
-    (random.NextDouble() * boardColumns * pixelsPerCell, random.NextDouble() * boardRows * pixelsPerCell)
+open Constants
 
 type BoardEvent =
     | PickUpDollar
@@ -28,6 +12,11 @@ type BoardEvent =
     | MoodEffectOver
     | PickUpFreeze
     | FreezeEffectOver
+
+type Timer = 
+    | Main
+    | Freeze
+    | Mood
 
 type BoardState =
     {Player: float<px>*float<px>;
@@ -38,9 +27,7 @@ type BoardState =
     KeyboardState: KeyboardState;
     GamePadState: GamePadState;
     BoardEvents: Set<BoardEvent>;
-    TimeRemaining: float<second>;
-    FreezeTimeRemaining: float<second>;
-    MoodTimeRemaining: float<second>}
+    TimesRemaining: Map<Timer,float<second>>}
 
 type GameState = 
     | TitleScreen
@@ -52,17 +39,15 @@ type GameState =
     | PausedState of BoardState
 
 let newGame () = 
-    {Player=randomBoardPosition ();
-    Dollar=randomBoardPosition (); 
+    {Player=Utility.randomBoardPosition ();
+    Dollar=Utility.randomBoardPosition (); 
     Score=0; 
     Heart = None;
     Freeze = None;
     KeyboardState = Keyboard.GetState();
     GamePadState = GamePad.GetState(PlayerIndex.One);
     BoardEvents = Set.empty;
-    TimeRemaining = 60.0<second>;
-    FreezeTimeRemaining = 0.0<second>;
-    MoodTimeRemaining = 0.0<second>}
+    TimesRemaining = Map.empty |> Map.add Main 60.0<second> |> Map.add Freeze 0.0<second> |> Map.add Mood 0.0<second>}
     |> PlayState
 
 let mutable private gameState =
@@ -128,17 +113,17 @@ let addEvent event boardState =
 
 let showHeart boardState =
     if boardState.Heart.IsNone && boardState.Score >= heartCost then
-        {boardState with Heart = randomBoardPosition() |> Some}
+        {boardState with Heart = Utility.randomBoardPosition() |> Some}
     elif boardState.Heart.IsSome && boardState.Score < heartCost then
         {boardState with Heart = None}
     else
         boardState
 
 let showFreeze boardState =
-    if boardState.FreezeTimeRemaining > 0.0<second> then
+    if boardState.TimesRemaining.[Freeze] > 0.0<second> then
         {boardState with Freeze = None}
     elif boardState.Freeze.IsNone && boardState.Score >= freezeCost then
-        {boardState with Freeze = randomBoardPosition() |> Some}
+        {boardState with Freeze = Utility.randomBoardPosition() |> Some}
     elif boardState.Freeze.IsSome && boardState.Score < freezeCost then
         {boardState with Freeze = None}
     else
@@ -146,27 +131,27 @@ let showFreeze boardState =
 
 let eatFreeze boardState = 
     if boardState.Freeze.IsSome && ((boardState.Player |> distance (boardState.Freeze |> Option.get)) / pixelsPerCell < 1.0<cell>) then
-        {boardState with Freeze = None; Score = boardState.Score - freezeCost; FreezeTimeRemaining = freezeTime}
+        {boardState with Freeze = None; Score = boardState.Score - freezeCost; TimesRemaining = boardState.TimesRemaining |> Map.add Freeze freezeTime}
         |> addEvent PickUpFreeze
     else
         boardState
 
 let eatHeart boardState = 
     if boardState.Heart.IsSome && ((boardState.Player |> distance (boardState.Heart |> Option.get)) / pixelsPerCell < 1.0<cell>) then
-        {boardState with Heart = None; Score = boardState.Score - heartCost; MoodTimeRemaining = moodTime}
+        {boardState with Heart = None; Score = boardState.Score - heartCost; TimesRemaining = boardState.TimesRemaining |> Map.add Mood moodTime}
         |> addEvent PickUpHeart
     else
         boardState
 
 let eatDollar boardState = 
     if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
-        {boardState with Dollar = randomBoardPosition (); Score = boardState.Score + 1}
+        {boardState with Dollar = Utility.randomBoardPosition (); Score = boardState.Score + 1}
         |> addEvent PickUpDollar
     else
         boardState
 
 let getMovementMultipler boardState =
-    if boardState.MoodTimeRemaining > 0.0<second> then
+    if boardState.TimesRemaining.[Mood] > 0.0<second> then
         2.0
     else
         1.0
@@ -187,35 +172,26 @@ let moveAvatar (delta:float<second>) (gamePadState:GamePadState) (keyboardState 
     |> showHeart
     |> showFreeze
 
-let decreaseFreezeTime (delta: float<second>) boardState =
-    if boardState.FreezeTimeRemaining = 0.0<second> then
+let decreaseTime timer event (delta: float<second>) boardState = 
+    if boardState.TimesRemaining.[timer] = 0.0<second> then
         boardState
-    elif delta > boardState.FreezeTimeRemaining then
-        {boardState with FreezeTimeRemaining = 0.0<second>}
-        |> addEvent FreezeEffectOver
+    elif delta > boardState.TimesRemaining.[timer] then
+        {boardState with TimesRemaining = boardState.TimesRemaining |> Map.add timer 0.0<second>}
+        |> addEvent event
     else
-        {boardState with FreezeTimeRemaining = boardState.FreezeTimeRemaining - delta}
-
-let decreaseMoodTime (delta: float<second>) boardState =
-    if boardState.MoodTimeRemaining = 0.0<second> then
-        boardState
-    elif delta > boardState.MoodTimeRemaining then
-        {boardState with MoodTimeRemaining = 0.0<second>}
-        |> addEvent MoodEffectOver
-    else
-        {boardState with MoodTimeRemaining = boardState.MoodTimeRemaining - delta}
+        {boardState with TimesRemaining = boardState.TimesRemaining |> Map.add timer (boardState.TimesRemaining.[timer] - delta)}
 
 let decreaseTimeRemaining (delta: float<second>) boardState =
-    if boardState.FreezeTimeRemaining > 0.0<second> then
+    if boardState.TimesRemaining.[Freeze] > 0.0<second> then
         boardState
     else
-        {boardState with TimeRemaining = boardState.TimeRemaining - delta}
+        {boardState with TimesRemaining = boardState.TimesRemaining |> Map.add Main (boardState.TimesRemaining.[Main] - delta)}
 
 let decreaseTimes (delta: float<second>) boardState =
     boardState
     |> decreaseTimeRemaining delta
-    |> decreaseMoodTime delta
-    |> decreaseFreezeTime delta
+    |> decreaseTime Mood MoodEffectOver delta
+    |> decreaseTime Freeze FreezeEffectOver delta
 
 
 let clearEvents boardState = 

@@ -10,22 +10,18 @@ open System
 open AssetType
 open Assets
 open TJoFGDGame
+open Constants
+
+let clampDimension minimum maximum dimension =
+    if dimension < minimum then
+        minimum
+    elif dimension > maximum then
+        maximum
+    else
+        dimension
 
 let clampAvatar boardState = 
-    let x,y = boardState.Player
-    let clamped = 
-        (
-        match x with
-        | v when v < 0.0<px> -> 0.0<px>
-        | v when v >= boardColumns * pixelsPerCell -> (boardColumns * pixelsPerCell - 1.0<cell> * pixelsPerCell)
-        | _ -> x
-        ,
-        match y with
-        | v when v < 0.0<px> -> 0.0<px>
-        | v when v >= boardRows * pixelsPerCell -> (boardRows * pixelsPerCell - 1.0<cell> * pixelsPerCell)
-        | _ -> y
-        )
-    {boardState with Player=clamped}
+    {boardState with Player=(boardState.Player |> fst |> clampDimension minimumX maximumX, boardState.Player |> snd |> clampDimension minimumY maximumY)}
 
 let addGamePadButton (button:Buttons) (gamePadState:GamePadState) (set:Set<Buttons>) = 
     if gamePadState.IsConnected && gamePadState.IsButtonDown(button) then
@@ -49,15 +45,34 @@ let getGamePadButtonPresses (oldGamePadState:GamePadState) (newGamePadState: Gam
     |> getGamePadButtons
     |> Set.fold (fun state button->if oldButtons.Contains(button) then state else state |> Set.add(button)) Set.empty<Buttons>
 
+let getKeyboardKeys (keyboardState:KeyboardState) = 
+    [Keys.Space;
+    Keys.F2]    
+    |> Seq.filter (fun k -> keyboardState.IsKeyDown(k))
+    |> Set.ofSeq
+
+let getKeyboardPresses (oldKeyboardState:KeyboardState) (newKeyboardState: KeyboardState) =
+    let oldKeys = oldKeyboardState |> getKeyboardKeys
+    newKeyboardState
+    |> getKeyboardKeys
+    |> Set.fold (fun state key->if oldKeys.Contains(key) then state else state |> Set.add(key)) Set.empty<Keys>
+
+let getInputState keyboardState gamePadState boardState =
+    let keysPressed = (boardState.KeyboardState, keyboardState) ||> getKeyboardPresses
+    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
+    let updateInputDevices = updateKeyboardState keyboardState >> updateGamePadState gamePadState
+    (keysPressed,buttons,updateInputDevices)
+    
+
 //TODO: please clean me up!
 let updatePlayState delta boardState = 
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
-    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
-    if (boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space)) || buttons.Contains(Buttons.B)  then
+    let (k,b,u) = boardState |> getInputState keyboardState gamePadState
+
+    if k.Contains(Keys.Space) || b.Contains(Buttons.B)  then
         boardState
-        |> updateKeyboardState keyboardState
-        |> updateGamePadState gamePadState
+        |> u
         |> PausedState
     else
         let newBoardState = 
@@ -65,10 +80,9 @@ let updatePlayState delta boardState =
             |> clearEvents
             |> moveAvatar delta gamePadState keyboardState
             |> clampAvatar 
-            |> updateKeyboardState keyboardState
-            |> updateGamePadState gamePadState
+            |> u
             |> decreaseTimes delta
-        if newBoardState.TimeRemaining <= 0.0<second> then
+        if newBoardState.TimesRemaining.[Main] <= 0.0<second> then
             newBoardState |> GameOverState
         else
             newBoardState |> PlayState
@@ -77,13 +91,12 @@ let updatePlayState delta boardState =
 let updateGameOverState delta boardState = 
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
-    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
-    if (boardState.KeyboardState.IsKeyUp(Keys.F2) && keyboardState.IsKeyDown(Keys.F2)) || buttons.Contains(Buttons.Start) then
+    let (k,b,u) = boardState |> getInputState keyboardState gamePadState
+    if k.Contains(Keys.F2) || b.Contains(Buttons.Start) then
         newGame()
     else
         boardState 
-        |> updateKeyboardState keyboardState
-        |> updateGamePadState gamePadState
+        |> u
         |> GameOverState
 
 let updatePausedState delta boardState = 
