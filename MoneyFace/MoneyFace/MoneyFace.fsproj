@@ -25,6 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\MoneyFace.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <StartArguments>username user_token</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -62,6 +63,7 @@
     <Compile Include="Assets.fs" />
     <Compile Include="RenderUtility.fs" />
     <Compile Include="Render.fs" />
+    <Compile Include="GameJoltApi.fs" />
     <Compile Include="Update.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
