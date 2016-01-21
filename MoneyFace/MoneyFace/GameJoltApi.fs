@@ -3,7 +3,7 @@
 open System.Security.Cryptography
 
 let private gjGameId = 120704
-let private gjPrivateKey = "8fa287db58661cb6c498ca6b39cd8f58"
+let private gjPrivateKey = "8fa287db58661cb6c498ca6b39cd8f58"//won't work... already reset it :)
 
 //BOOO! MUTABLE!
 let mutable private gjUserName = ""
