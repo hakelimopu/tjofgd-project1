@@ -83,6 +83,7 @@ let updatePlayState delta boardState =
             |> u
             |> decreaseTimes delta
         if newBoardState.TimesRemaining.[Main] <= 0.0<second> then
+            newBoardState.Score |> GameJoltApi.addScore 
             newBoardState |> GameOverState
         else
             newBoardState |> PlayState
