@@ -74,9 +74,16 @@ let drawOptionsState delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,So
     spriteBatch |> drawText (0,0) "Options" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
     spriteBatch |> drawText (0,30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
 
-let drawHighScoreState delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+let drawHighScoreState delta highScores (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
     spriteBatch |> drawText (0,0) "High Scores" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
-    spriteBatch |> drawText (0,30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    highScores
+    |> List.fold (fun acc highScore -> 
+                        spriteBatch |> drawText (0,acc) highScore.User Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+                        spriteBatch |> drawText (500,acc) highScore.Score Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+                        spriteBatch |> drawText (750,acc) highScore.Stored Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+                        acc + 30) 30
+    |> ignore
+    spriteBatch |> drawText (0,720-30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
 
 let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with
@@ -86,7 +93,7 @@ let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffec
     | PausedState boardState -> drawPausedState delta boardState assets spriteBatch
     | HelpState  -> drawHelpState delta assets spriteBatch
     | OptionsState  -> drawOptionsState delta assets spriteBatch
-    | HighScoreState  -> drawHighScoreState delta assets spriteBatch
+    | HighScoreState highScores -> drawHighScoreState delta highScores assets spriteBatch
 
 
 

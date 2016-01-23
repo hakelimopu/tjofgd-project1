@@ -29,13 +29,18 @@ type BoardState =
     BoardEvents: Set<BoardEvent>;
     TimesRemaining: Map<Timer,float<second>>}
 
+type HighScore =
+    {Score:string;
+    User:string;
+    Stored:string}
+
 type GameState = 
     | TitleScreen
     | PlayState of BoardState
     | GameOverState of BoardState
     | HelpState
     | OptionsState
-    | HighScoreState
+    | HighScoreState of HighScore list
     | PausedState of BoardState
 
 let newGame () = 

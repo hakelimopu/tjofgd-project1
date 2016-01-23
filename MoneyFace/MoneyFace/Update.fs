@@ -126,7 +126,7 @@ let updateTitleScreen delta =
     elif keyboardState.IsKeyDown(Keys.F3) || buttons.Contains(Buttons.A) then
         OptionsState
     elif keyboardState.IsKeyDown(Keys.F4) || buttons.Contains(Buttons.Y) then
-        HighScoreState
+        GameJoltApi.getScores() |> HighScoreState
     else
         TitleScreen
     
@@ -146,13 +146,13 @@ let updateOptionsState delta =
     else
         OptionsState
     
-let updateHighScoreState delta =
+let updateHighScoreState delta highScores=
     let keyboardState = Keyboard.GetState()
     let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
     if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
         TitleScreen
     else
-        HighScoreState
+        HighScoreState highScores
     
 
 let updateGame delta =
@@ -160,7 +160,7 @@ let updateGame delta =
     | TitleScreen -> updateTitleScreen delta
     | HelpState -> updateHelpState delta
     | OptionsState -> updateOptionsState delta
-    | HighScoreState -> updateHighScoreState delta
+    | HighScoreState highScores -> updateHighScoreState delta highScores
     | PlayState boardState -> boardState |> updatePlayState delta
     | PausedState boardState -> boardState |> updatePausedState delta
     | GameOverState boardState -> boardState |> updateGameOverState delta
