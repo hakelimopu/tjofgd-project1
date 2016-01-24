@@ -88,13 +88,6 @@ let private stripValue (text:string) =
     let quotedValue = text.Split([|':'|]).[1]
     quotedValue.Substring(1,quotedValue.Length-2)
 
-//score:"24"
-//sort:"24"
-//extra_data:""
-//user:"playdeezgames"
-//user_id:"309032"
-//guest:""
-//stored:"1 day ago"
 let rec private processScores (highScores: BoardState.HighScore list) (lines:string list) = 
     match lines with
     | score :: sort :: extra_data :: user :: user_id :: guest :: stored :: tail -> tail |> processScores ({Score=score |> stripValue;User=user |> stripValue;Stored=stored |> stripValue} :: highScores)

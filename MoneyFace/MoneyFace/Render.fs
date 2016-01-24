@@ -81,9 +81,9 @@ let drawHighScoreState delta highScores (assets:Map<AssetId,AssetType<Texture2D,
                         spriteBatch |> drawText (0,acc) highScore.User Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
                         spriteBatch |> drawText (500,acc) highScore.Score Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
                         spriteBatch |> drawText (750,acc) highScore.Stored Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
-                        acc + 30) 30
+                        acc - 30) (30 * (highScores |> List.length))
     |> ignore
-    spriteBatch |> drawText (0,720-30) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
+    spriteBatch |> drawText (0,720-45) "Esc - Go Back" Color.White (assets.[Miramonte_Font] |> getFont |> Option.get)
 
 let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
     match loadGameState() with

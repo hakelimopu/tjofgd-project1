@@ -47,6 +47,7 @@ let getGamePadButtonPresses (oldGamePadState:GamePadState) (newGamePadState: Gam
 
 let getKeyboardKeys (keyboardState:KeyboardState) = 
     [Keys.Space;
+    Keys.Escape;
     Keys.F2]    
     |> Seq.filter (fun k -> keyboardState.IsKeyDown(k))
     |> Set.ofSeq
@@ -62,9 +63,26 @@ let getInputState keyboardState gamePadState boardState =
     let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
     let updateInputDevices = updateKeyboardState keyboardState >> updateGamePadState gamePadState
     (keysPressed,buttons,updateInputDevices)
+
+let achieveTrophies (boardState: BoardState) =
+    if boardState |> getCounter DollarCounter >= 25 then
+        49005 |> GameJoltApi.addAchieved 
+    else
+        ()
+    if boardState |> getCounter DollarCounter >= 50 then
+        49137 |> GameJoltApi.addAchieved 
+    else
+        ()
+    if boardState |> getCounter DollarCounter >= 100 then
+        49138 |> GameJoltApi.addAchieved 
+    else
+        ()
+    if boardState |> getCounter DollarCounter >= 200 then
+        49139 |> GameJoltApi.addAchieved 
+    else
+        ()
     
 
-//TODO: please clean me up!
 let updatePlayState delta boardState = 
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
@@ -84,6 +102,7 @@ let updatePlayState delta boardState =
             |> decreaseTimes delta
         if newBoardState.TimesRemaining.[Main] <= 0.0<second> then
             newBoardState.Score |> GameJoltApi.addScore 
+            newBoardState |> achieveTrophies
             newBoardState |> GameOverState
         else
             newBoardState |> PlayState
@@ -95,6 +114,8 @@ let updateGameOverState delta boardState =
     let (k,b,u) = boardState |> getInputState keyboardState gamePadState
     if k.Contains(Keys.F2) || b.Contains(Buttons.Start) then
         newGame()
+    elif k.Contains(Keys.Escape) || b.Contains(Buttons.Back) then
+        TitleScreen
     else
         boardState 
         |> u

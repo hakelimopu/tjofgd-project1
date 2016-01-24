@@ -18,12 +18,18 @@ type Timer =
     | Freeze
     | Mood
 
+type CounterType =
+    | DollarCounter
+    | HeartCounter
+    | FreezeCounter
+
 type BoardState =
     {Player: float<px>*float<px>;
     Dollar: float<px>*float<px>;
     Heart: (float<px> * float<px>) option;
     Freeze: (float<px> * float<px>) option;
     Score: int;
+    Counters: Map<CounterType,int>;
     KeyboardState: KeyboardState;
     GamePadState: GamePadState;
     BoardEvents: Set<BoardEvent>;
@@ -49,6 +55,7 @@ let newGame () =
     Score=0; 
     Heart = None;
     Freeze = None;
+    Counters = Map.empty;
     KeyboardState = Keyboard.GetState();
     GamePadState = GamePad.GetState(PlayerIndex.One);
     BoardEvents = Set.empty;
@@ -116,6 +123,21 @@ let determineDelta (oldKeyboardState :KeyboardState) (keyboardState :KeyboardSta
 let addEvent event boardState =
     {boardState with BoardEvents = event |> boardState.BoardEvents.Add}
 
+let getCounter counterType boardState =
+    let value = 
+        boardState.Counters
+        |> Map.tryFind (counterType)
+    match value with
+    | Some x -> x
+    | _ -> 0
+
+let private setCounter counterType counterValue boardState =
+    {boardState with Counters=boardState.Counters |> Map.add counterType counterValue}
+
+let incrementCounter counterType boardState =
+    boardState
+    |> setCounter counterType ((boardState |> getCounter counterType) + 1)
+
 let showHeart boardState =
     if boardState.Heart.IsNone && boardState.Score >= heartCost then
         {boardState with Heart = Utility.randomBoardPosition() |> Some}
@@ -138,6 +160,7 @@ let eatFreeze boardState =
     if boardState.Freeze.IsSome && ((boardState.Player |> distance (boardState.Freeze |> Option.get)) / pixelsPerCell < 1.0<cell>) then
         {boardState with Freeze = None; Score = boardState.Score - freezeCost; TimesRemaining = boardState.TimesRemaining |> Map.add Freeze freezeTime}
         |> addEvent PickUpFreeze
+        |> incrementCounter FreezeCounter
     else
         boardState
 
@@ -145,6 +168,7 @@ let eatHeart boardState =
     if boardState.Heart.IsSome && ((boardState.Player |> distance (boardState.Heart |> Option.get)) / pixelsPerCell < 1.0<cell>) then
         {boardState with Heart = None; Score = boardState.Score - heartCost; TimesRemaining = boardState.TimesRemaining |> Map.add Mood moodTime}
         |> addEvent PickUpHeart
+        |> incrementCounter HeartCounter
     else
         boardState
 
@@ -152,6 +176,7 @@ let eatDollar boardState =
     if (boardState.Player |> distance boardState.Dollar) / pixelsPerCell < 1.0<cell> then
         {boardState with Dollar = Utility.randomBoardPosition (); Score = boardState.Score + 1}
         |> addEvent PickUpDollar
+        |> incrementCounter DollarCounter
     else
         boardState
 
