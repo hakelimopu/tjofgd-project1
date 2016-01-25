@@ -64,24 +64,25 @@ let getInputState keyboardState gamePadState boardState =
     let updateInputDevices = updateKeyboardState keyboardState >> updateGamePadState gamePadState
     (keysPressed,buttons,updateInputDevices)
 
+//start trophies
+
+let private trophiesList =
+    [(DollarCounter,25,49005);
+    (DollarCounter,50,49137);
+    (DollarCounter,100,49138);
+    (DollarCounter,200,49139)]
+
+let private achieveTrophy boardState (counter,goal,trophyId) =
+    if boardState |> getCounter counter >= goal then
+        trophyId |> GameJoltApi.addAchieved
+    else
+        ()
+
 let achieveTrophies (boardState: BoardState) =
-    if boardState |> getCounter DollarCounter >= 25 then
-        49005 |> GameJoltApi.addAchieved 
-    else
-        ()
-    if boardState |> getCounter DollarCounter >= 50 then
-        49137 |> GameJoltApi.addAchieved 
-    else
-        ()
-    if boardState |> getCounter DollarCounter >= 100 then
-        49138 |> GameJoltApi.addAchieved 
-    else
-        ()
-    if boardState |> getCounter DollarCounter >= 200 then
-        49139 |> GameJoltApi.addAchieved 
-    else
-        ()
-    
+    trophiesList
+    |> List.iter(achieveTrophy boardState)
+
+//end trophies
 
 let updatePlayState delta boardState = 
     let keyboardState = Keyboard.GetState()
@@ -124,17 +125,13 @@ let updateGameOverState delta boardState =
 let updatePausedState delta boardState = 
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
-    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
-    if (boardState.KeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space)) || buttons.Contains(Buttons.B) then
-        boardState
-        |> updateKeyboardState keyboardState
-        |> updateGamePadState gamePadState
-        |> PlayState
-    else
-        boardState 
-        |> updateKeyboardState keyboardState
-        |> updateGamePadState gamePadState
-        |> PausedState
+    let (k,b,u) = boardState |> getInputState keyboardState gamePadState
+    boardState
+    |> u
+    |> if k.Contains(Keys.Space) || b.Contains(Buttons.B) then
+        PlayState
+       else
+        PausedState
 
 let updateTitleScreen delta =
     let keyboardState = Keyboard.GetState()
@@ -148,6 +145,8 @@ let updateTitleScreen delta =
         OptionsState
     elif keyboardState.IsKeyDown(Keys.F4) || buttons.Contains(Buttons.Y) then
         GameJoltApi.getScores() |> HighScoreState
+    elif keyboardState.IsKeyDown(Keys.F5) || buttons.Contains(Buttons.B) then
+        AboutState
     else
         TitleScreen
     
@@ -167,6 +166,14 @@ let updateOptionsState delta =
     else
         OptionsState
     
+let updateAboutState delta =
+    let keyboardState = Keyboard.GetState()
+    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
+    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
+        TitleScreen
+    else
+        AboutState
+    
 let updateHighScoreState delta highScores=
     let keyboardState = Keyboard.GetState()
     let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
@@ -181,6 +188,7 @@ let updateGame delta =
     | TitleScreen -> updateTitleScreen delta
     | HelpState -> updateHelpState delta
     | OptionsState -> updateOptionsState delta
+    | AboutState -> updateAboutState delta
     | HighScoreState highScores -> updateHighScoreState delta highScores
     | PlayState boardState -> boardState |> updatePlayState delta
     | PausedState boardState -> boardState |> updatePausedState delta

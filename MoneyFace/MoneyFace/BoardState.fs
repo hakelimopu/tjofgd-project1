@@ -46,6 +46,7 @@ type GameState =
     | GameOverState of BoardState
     | HelpState
     | OptionsState
+    | AboutState
     | HighScoreState of HighScore list
     | PausedState of BoardState
 

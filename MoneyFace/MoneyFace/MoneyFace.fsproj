@@ -61,8 +61,15 @@
     <Compile Include="BoardState.fs" />
     <Compile Include="AssetType.fs" />
     <Compile Include="Assets.fs" />
-    <Compile Include="RenderUtility.fs" />
-    <Compile Include="Render.fs" />
+    <Compile Include="Render\RenderUtility.fs" />
+    <Compile Include="Render\RenderAboutState.fs" />
+    <Compile Include="Render\RenderHelpState.fs" />
+    <Compile Include="Render\RenderHighScoreState.fs" />
+    <Compile Include="Render\RenderOptionsState.fs" />
+    <Compile Include="Render\RenderPausedState.fs" />
+    <Compile Include="Render\RenderPlayState.fs" />
+    <Compile Include="Render\RenderTitleScreen.fs" />
+    <Compile Include="Render\Render.fs" />
     <Compile Include="GameJoltApi.fs" />
     <Compile Include="Update.fs" />
     <Compile Include="Program.fs" />
