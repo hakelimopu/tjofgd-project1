@@ -25,7 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\MoneyFace.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <StartArguments>playdeezgames EiaXSwLan4KF</StartArguments>
+    <StartArguments>playdeezgames 59dJsMQBO0oj</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -71,7 +71,16 @@
     <Compile Include="Render\RenderTitleScreen.fs" />
     <Compile Include="Render\Render.fs" />
     <Compile Include="GameJoltApi.fs" />
-    <Compile Include="Update.fs" />
+    <Compile Include="Update\UpdateUtility.fs" />
+    <Compile Include="Update\UpdateAboutState.fs" />
+    <Compile Include="Update\UpdateGameOverState.fs" />
+    <Compile Include="Update\UpdateHelpState.fs" />
+    <Compile Include="Update\UpdateHighScoreState.fs" />
+    <Compile Include="Update\UpdateOptionsState.fs" />
+    <Compile Include="Update\UpdatePausedState.fs" />
+    <Compile Include="Update\UpdatePlayState.fs" />
+    <Compile Include="Update\UpdateTitleScreen.fs" />
+    <Compile Include="Update\Update.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

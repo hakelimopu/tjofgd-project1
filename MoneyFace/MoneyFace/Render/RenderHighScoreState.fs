@@ -10,16 +10,16 @@ open RenderUtility
 open TJoFGDGame
 
 let private drawHighScore (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch x highScore =
-    spriteBatch |> drawText (0,x) highScore.User Color.White (assets |> getMiramonteFont)
-    spriteBatch |> drawText (500,x) highScore.Score Color.White (assets |> getMiramonteFont)
-    spriteBatch |> drawText (750,x) highScore.Stored Color.White (assets |> getMiramonteFont)
-    x - 30
+    spriteBatch |> drawText (0,x) highScore.User Color.Blue (assets |> getMiramonteFont)
+    spriteBatch |> drawText (500,x) highScore.Score Color.Blue (assets |> getMiramonteFont)
+    spriteBatch |> drawText (750,x) highScore.Stored Color.Blue (assets |> getMiramonteFont)
+    x - 60
 
 let drawHighScoreState delta highScores (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
     spriteBatch |> drawText (0,0) "High Scores" Color.White (assets |> getMiramonteFont)
     highScores
-    |> List.fold (drawHighScore assets spriteBatch) (30 * (highScores |> List.length))
+    |> List.fold (drawHighScore assets spriteBatch) (60 * (highScores |> List.length))
     |> ignore
-    spriteBatch |> drawText (0,720-45) "Esc (B) - Go Back" Color.White (assets |> getMiramonteFont)
+    spriteBatch |> drawText (0,720-45) "Esc (B) - Go Back" Color.Gray (assets |> getMiramonteFont)
 
 

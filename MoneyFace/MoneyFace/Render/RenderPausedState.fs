@@ -10,8 +10,11 @@ open RenderUtility
 open TJoFGDGame
 
 let drawPausedState delta boardState (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
-    [((0,0),"Paused",Color.White,getMiramonteFont);
-    ((0,680),"<SPACE> (B) - Unpause",Color.Gray,getMiramonteFont)]
+    let font = assets |> getMiramonteFont
+    let pausedMeasure = font.MeasureString("-- PAUSED --")
+    let unpauseMeasure = font.MeasureString("<SPACE> (B) - Unpause")
+    [((500-(pausedMeasure.X |> int)/2,360),"-- PAUSED --",Color.Red,getMiramonteFont);
+    ((500-(unpauseMeasure.X |> int)/2,680),"<SPACE> (B) - Unpause",Color.Gray,getMiramonteFont)]
     |> drawTextContents assets spriteBatch
 
 
