@@ -19,7 +19,7 @@ let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffec
     | GameOverState boardState -> RenderPlayState.drawPlayState delta boardState assets spriteBatch
     | PausedState boardState -> RenderPausedState.drawPausedState delta boardState assets spriteBatch
     | HelpState  -> RenderHelpState.drawHelpState delta assets spriteBatch
-    | OptionsState  -> RenderOptionsState.drawOptionsState delta assets spriteBatch
+    | OptionsState _ -> RenderOptionsState.drawOptionsState delta assets spriteBatch
     | HighScoreState highScores -> RenderHighScoreState.drawHighScoreState delta highScores assets spriteBatch
     | AboutState -> RenderAboutState.drawAboutState delta assets spriteBatch
 

@@ -45,7 +45,7 @@ type GameState =
     | PlayState of BoardState
     | GameOverState of BoardState
     | HelpState
-    | OptionsState
+    | OptionsState of (KeyboardState * GamePadState)
     | AboutState
     | HighScoreState of HighScore list
     | PausedState of BoardState

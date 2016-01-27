@@ -10,6 +10,7 @@ open RenderUtility
 open TJoFGDGame
 
 let drawTitleScreen delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) spriteBatch =
+    spriteBatch |> drawTexture (500,360) (assets.[TitleScreen_Texture] |> getTexture |> Option.get)
     [((0,0),"MoneyFace",Color.White,getMiramonteFont);
     ((0,60),"F1 (X) - Instructions",Color.Blue,getMiramonteFont);
     ((0,120),"F2 (Start) - Start Game",Color.LightGray,getMiramonteFont);

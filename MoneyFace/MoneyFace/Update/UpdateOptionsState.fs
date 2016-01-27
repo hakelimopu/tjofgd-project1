@@ -12,13 +12,29 @@ open Assets
 open TJoFGDGame
 open Constants
 open UpdateUtility
+open GameOptions
 
-let updateOptionsState delta =
+let updateOptionsState delta (oldKeyboardState:KeyboardState) (oldGamePadState: GamePadState) =
     let keyboardState = Keyboard.GetState()
-    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
-    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
+    let gamePadState = GamePad.GetState(PlayerIndex.One)
+    if (oldKeyboardState.IsKeyUp(Keys.Left) && keyboardState.IsKeyDown(Keys.Left)) || (oldGamePadState.IsButtonUp(Buttons.X) && gamePadState.IsButtonDown(Buttons.X)) then
+        loadGameOptions()
+        |> decreaseVolume
+        |> saveGameOptions
+        OptionsState (keyboardState,gamePadState)
+    elif (oldKeyboardState.IsKeyUp(Keys.Right) && keyboardState.IsKeyDown(Keys.Right)) || (oldGamePadState.IsButtonUp(Buttons.Y) && gamePadState.IsButtonDown(Buttons.Y)) then
+        loadGameOptions()
+        |> increaseVolume
+        |> saveGameOptions
+        OptionsState (keyboardState,gamePadState)
+    elif (oldKeyboardState.IsKeyUp(Keys.Space) && keyboardState.IsKeyDown(Keys.Space)) || (oldGamePadState.IsButtonUp(Buttons.A) && gamePadState.IsButtonDown(Buttons.A)) then
+        loadGameOptions()
+        |> toggleSfx
+        |> saveGameOptions
+        OptionsState (keyboardState,gamePadState)
+    elif (oldKeyboardState.IsKeyUp(Keys.Escape) && keyboardState.IsKeyDown(Keys.Escape)) || (oldGamePadState.IsButtonUp(Buttons.B) && gamePadState.IsButtonDown(Buttons.B)) then
         TitleScreen
     else
-        OptionsState
+        OptionsState (keyboardState,gamePadState)
 
 

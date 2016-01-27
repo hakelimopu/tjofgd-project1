@@ -16,6 +16,7 @@ type AssetId =
     | Heart_Texture//Lorc
     | SnowFlake_Texture//Lorc
     | MoodOver_SoundEffect
+    | TitleScreen_Texture
 
 let private loadAsset (contentManager:ContentManager) (id,asset) =
     let loadedAsset = 
@@ -35,6 +36,7 @@ let loadAssets (contentManager:ContentManager) =
     (Miramonte_Font, Font "miramonte");
     (Avatar_Texture, AssetType.Texture "avatar");
     (Dollar_Texture, AssetType.Texture "dollar");
+    (TitleScreen_Texture, AssetType.Texture "titlescreen");
     (Playfield_Texture, AssetType.Texture "playfield")]
     |> Seq.map (loadAsset contentManager)
     |> Map.ofSeq

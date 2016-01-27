@@ -22,7 +22,7 @@ let updateTitleScreen delta =
     elif keyboardState.IsKeyDown(Keys.F2) || buttons.Contains(Buttons.Start) then
         newGame()
     elif keyboardState.IsKeyDown(Keys.F3) || buttons.Contains(Buttons.A) then
-        OptionsState
+        OptionsState (keyboardState,gamePadState)
     elif keyboardState.IsKeyDown(Keys.F4) || buttons.Contains(Buttons.Y) then
         GameJoltApi.getScores() |> HighScoreState
     elif keyboardState.IsKeyDown(Keys.F5) || buttons.Contains(Buttons.B) then

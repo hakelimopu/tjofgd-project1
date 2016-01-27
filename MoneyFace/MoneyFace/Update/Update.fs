@@ -14,7 +14,7 @@ let updateGame delta =
     match loadGameState() with
     | TitleScreen -> updateTitleScreen delta
     | HelpState -> updateHelpState delta
-    | OptionsState -> updateOptionsState delta
+    | OptionsState (k,g) -> updateOptionsState delta k g
     | AboutState -> updateAboutState delta
     | HighScoreState highScores -> updateHighScoreState delta highScores
     | PlayState boardState -> boardState |> updatePlayState delta

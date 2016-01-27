@@ -21,12 +21,14 @@ let drawInt xy score (font:SpriteFont) (spriteBatch: SpriteBatch) =
 let statusPanelX = 36.0 * Constants.boardColumns
 
 let handleEvent (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) boardState event =
-    match event with
-    | BoardState.PickUpDollar -> (assets.[Coin_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
-    | BoardState.PickUpHeart -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
-    | BoardState.PickUpFreeze -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore//GYOSFX
-    | BoardState.MoodEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore
-    | BoardState.FreezeEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play() |> ignore//GYOSFX
+    let gameOptions = GameOptions.loadGameOptions()
+    match gameOptions.Sfx, event with
+    | true, BoardState.PickUpDollar -> (assets.[Coin_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
+    | true, BoardState.PickUpHeart -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
+    | true, BoardState.PickUpFreeze -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore//GYOSFX
+    | true, BoardState.MoodEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
+    | true, BoardState.FreezeEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore//GYOSFX
+    | _, _ -> ()
 
 let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) boardState =
     boardState.BoardEvents
