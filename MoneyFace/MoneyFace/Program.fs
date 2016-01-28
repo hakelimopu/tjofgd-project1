@@ -5,7 +5,7 @@ open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Audio
 
 let private gjGameId = 120704
-let private gjPrivateKey = "43a6f9b13fd19f8d897a9ddefb39d4f7"
+let private gjPrivateKey = "NUNYA"
 
 [<EntryPoint>]
 let main argv = 
