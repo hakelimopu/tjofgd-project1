@@ -41,13 +41,13 @@ type HighScore =
     Stored:string}
 
 type GameState = 
-    | TitleScreen
+    | TitleScreen of KeyboardState * GamePadState
     | PlayState of BoardState
     | GameOverState of BoardState
-    | HelpState
-    | OptionsState of (KeyboardState * GamePadState)
-    | AboutState
-    | HighScoreState of HighScore list
+    | HelpState of KeyboardState * GamePadState
+    | OptionsState of KeyboardState * GamePadState
+    | AboutState of KeyboardState * GamePadState
+    | HighScoreState of HighScore list * KeyboardState * GamePadState
     | PausedState of BoardState
 
 let newGame () = 
@@ -64,7 +64,7 @@ let newGame () =
     |> PlayState
 
 let mutable private gameState =
-    TitleScreen
+    TitleScreen (Keyboard.GetState(), GamePad.GetState(PlayerIndex.One))
 
 let loadGameState () =
     gameState

@@ -13,15 +13,16 @@ open TJoFGDGame
 open RenderUtility
 
 let drawGame delta (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) (spriteBatch: SpriteBatch) = 
-    match loadGameState() with
-    | TitleScreen -> RenderTitleScreen.drawTitleScreen delta assets spriteBatch
+    let gameState = loadGameState()
+    match gameState with
     | PlayState boardState -> RenderPlayState.drawPlayState delta boardState assets spriteBatch
+    | TitleScreen _ -> RenderTitleScreen.drawTitleScreen delta assets spriteBatch
     | GameOverState boardState -> RenderPlayState.drawPlayState delta boardState assets spriteBatch
     | PausedState boardState -> RenderPausedState.drawPausedState delta boardState assets spriteBatch
-    | HelpState  -> RenderHelpState.drawHelpState delta assets spriteBatch
+    | HelpState _ -> RenderHelpState.drawHelpState delta assets spriteBatch
     | OptionsState _ -> RenderOptionsState.drawOptionsState delta assets spriteBatch
-    | HighScoreState highScores -> RenderHighScoreState.drawHighScoreState delta highScores assets spriteBatch
-    | AboutState -> RenderAboutState.drawAboutState delta assets spriteBatch
+    | HighScoreState (highScores, _, _) -> RenderHighScoreState.drawHighScoreState delta highScores assets spriteBatch
+    | AboutState _ -> RenderAboutState.drawAboutState delta assets spriteBatch
 
 
 

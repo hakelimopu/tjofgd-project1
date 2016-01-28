@@ -13,21 +13,21 @@ open TJoFGDGame
 open Constants
 open UpdateUtility
 
-let updateTitleScreen delta =
+let updateTitleScreen delta (oldKeyboardState:KeyboardState) (oldGamePadState: GamePadState)=
     let keyboardState = Keyboard.GetState()
     let gamePadState = GamePad.GetState(PlayerIndex.One)
-    let buttons = gamePadState |> getGamePadButtons
-    if keyboardState.IsKeyDown(Keys.F1) || buttons.Contains(Buttons.X) then
-        HelpState
-    elif keyboardState.IsKeyDown(Keys.F2) || buttons.Contains(Buttons.Start) then
+    let (keyPresses, buttons) = getInputChanges oldKeyboardState keyboardState oldGamePadState gamePadState
+    if keyPresses.Contains(Keys.F1) || buttons.Contains(Buttons.X) then
+        HelpState (keyboardState,gamePadState)
+    elif keyPresses.Contains(Keys.F2) || buttons.Contains(Buttons.Start) then
         newGame()
-    elif keyboardState.IsKeyDown(Keys.F3) || buttons.Contains(Buttons.A) then
+    elif keyPresses.Contains(Keys.F3) || buttons.Contains(Buttons.A) then
         OptionsState (keyboardState,gamePadState)
-    elif keyboardState.IsKeyDown(Keys.F4) || buttons.Contains(Buttons.Y) then
-        GameJoltApi.getScores() |> HighScoreState
-    elif keyboardState.IsKeyDown(Keys.F5) || buttons.Contains(Buttons.B) then
-        AboutState
+    elif keyPresses.Contains(Keys.F4) || buttons.Contains(Buttons.Y) then
+        (GameJoltApi.getScores(), keyboardState, gamePadState) |> HighScoreState
+    elif keyPresses.Contains(Keys.F5) || buttons.Contains(Buttons.B) then
+        AboutState (keyboardState,gamePadState)
     else
-        TitleScreen
+        TitleScreen (keyboardState,gamePadState)
 
 

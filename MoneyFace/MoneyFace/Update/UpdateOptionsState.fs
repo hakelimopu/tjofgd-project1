@@ -33,7 +33,7 @@ let updateOptionsState delta (oldKeyboardState:KeyboardState) (oldGamePadState: 
         |> saveGameOptions
         OptionsState (keyboardState,gamePadState)
     elif (oldKeyboardState.IsKeyUp(Keys.Escape) && keyboardState.IsKeyDown(Keys.Escape)) || (oldGamePadState.IsButtonUp(Buttons.B) && gamePadState.IsButtonDown(Buttons.B)) then
-        TitleScreen
+        TitleScreen (keyboardState,gamePadState)
     else
         OptionsState (keyboardState,gamePadState)
 

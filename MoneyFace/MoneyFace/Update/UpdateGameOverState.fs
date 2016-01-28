@@ -20,7 +20,7 @@ let updateGameOverState delta boardState =
     if k.Contains(Keys.F2) || b.Contains(Buttons.Start) then
         newGame()
     elif k.Contains(Keys.Escape) || b.Contains(Buttons.Back) then
-        TitleScreen
+        TitleScreen (keyboardState, gamePadState)
     else
         boardState 
         |> u

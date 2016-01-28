@@ -24,10 +24,8 @@ let handleEvent (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>
     let gameOptions = GameOptions.loadGameOptions()
     match gameOptions.Sfx, event with
     | true, BoardState.PickUpDollar -> (assets.[Coin_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
-    | true, BoardState.PickUpHeart -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
-    | true, BoardState.PickUpFreeze -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore//GYOSFX
-    | true, BoardState.MoodEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
-    | true, BoardState.FreezeEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore//GYOSFX
+    | true, BoardState.PickUpHeart    | true, BoardState.PickUpFreeze -> (assets.[Heart_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
+    | true, BoardState.MoodEffectOver | true, BoardState.FreezeEffectOver -> (assets.[MoodOver_SoundEffect] |> getSoundEffect |> Option.get).Play(gameOptions.Volume|>float32,0.0|>float32,0.0|>float32) |> ignore
     | _, _ -> ()
 
 let handleEvents (assets:Map<AssetId,AssetType<Texture2D,SpriteFont,SoundEffect>>) boardState =

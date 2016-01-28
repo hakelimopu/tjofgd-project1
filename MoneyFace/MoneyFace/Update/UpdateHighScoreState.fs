@@ -13,12 +13,13 @@ open TJoFGDGame
 open Constants
 open UpdateUtility
 
-let updateHighScoreState delta highScores=
+let updateHighScoreState delta highScores (oldKeyboardState:KeyboardState) (oldGamePadState: GamePadState)=
     let keyboardState = Keyboard.GetState()
-    let buttons = GamePad.GetState(PlayerIndex.One) |> getGamePadButtons
-    if keyboardState.IsKeyDown(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
-        TitleScreen
+    let gamePadState = GamePad.GetState(PlayerIndex.One) 
+    let (keyPresses, buttons) = getInputChanges oldKeyboardState keyboardState oldGamePadState gamePadState
+    if keyPresses.Contains(Keys.Escape) || buttons.Contains(Buttons.B) || buttons.Contains(Buttons.Back) then
+        TitleScreen (keyboardState, gamePadState)
     else
-        HighScoreState highScores
+        HighScoreState (highScores, keyboardState, gamePadState)
 
 

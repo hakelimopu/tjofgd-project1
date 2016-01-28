@@ -48,7 +48,13 @@ let getGamePadButtonPresses (oldGamePadState:GamePadState) (newGamePadState: Gam
 let getKeyboardKeys (keyboardState:KeyboardState) = 
     [Keys.Space;
     Keys.Escape;
-    Keys.F2]    
+    Keys.F1;
+    Keys.F2;
+    Keys.F3;
+    Keys.F4;
+    Keys.F5;
+    Keys.Left;
+    Keys.Right]    
     |> Seq.filter (fun k -> keyboardState.IsKeyDown(k))
     |> Set.ofSeq
 
@@ -58,9 +64,13 @@ let getKeyboardPresses (oldKeyboardState:KeyboardState) (newKeyboardState: Keybo
     |> getKeyboardKeys
     |> Set.fold (fun state key->if oldKeys.Contains(key) then state else state |> Set.add(key)) Set.empty<Keys>
 
+let getInputChanges oldKeyboardState keyboardState oldGamePadState gamePadState =
+    let keysPressed = (oldKeyboardState, keyboardState) ||> getKeyboardPresses
+    let buttons = (oldGamePadState, gamePadState) ||> getGamePadButtonPresses
+    (keysPressed,buttons)
+
 let getInputState keyboardState gamePadState boardState =
-    let keysPressed = (boardState.KeyboardState, keyboardState) ||> getKeyboardPresses
-    let buttons = (boardState.GamePadState, gamePadState) ||> getGamePadButtonPresses
+    let (keysPressed,buttons) = getInputChanges boardState.KeyboardState keyboardState boardState.GamePadState gamePadState
     let updateInputDevices = updateKeyboardState keyboardState >> updateGamePadState gamePadState
     (keysPressed,buttons,updateInputDevices)
 
